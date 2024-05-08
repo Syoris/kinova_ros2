@@ -5,7 +5,7 @@
 
 #include <kinova/KinovaTypes.h>
 
-// #include <kinova_driver/kinova_ros_types.h>
+#include <kinova_driver/kinova_ros2_types.h>
 #include "kinova_driver/kinova_api.h"
 
 namespace kinova

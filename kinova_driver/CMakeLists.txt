@@ -8,6 +8,13 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+# find_package(std_msgs REQUIRED)
+find_package(kinova_msgs REQUIRED)
+find_package(tf2 REQUIRED)
+find_package(tf2_geometry_msgs REQUIRED)
+find_package(angles REQUIRED)
+# find_package(sensor_msgs REQUIRED)
 
 
 ##### BUILD #####
@@ -33,7 +40,7 @@ add_library(kinova_driver_lib
   # src/kinova_tool_pose_action.cpp
   # src/kinova_joint_angles_action.cpp
   # src/kinova_fingers_action.cpp
-  # src/kinova_ros_types.cpp
+  src/kinova_ros2_types.cpp
   # src/kinova_joint_trajectory_controller.cpp
   # include/kinova_driver/kinova_joint_trajectory_controller.h
   # include/kinova_driver/kinova_joint_angles_action.h
@@ -49,7 +56,11 @@ add_library(kinova_driver_lib
 )
 ament_target_dependencies(kinova_driver_lib
   rclcpp
-  # Add other dependencies if needed
+  geometry_msgs
+  kinova_msgs
+  tf2
+  tf2_geometry_msgs
+  angles
 )
 target_include_directories(kinova_driver_lib PUBLIC
   include
