@@ -47,6 +47,7 @@
 #include <math.h>
 #include <angles/angles.h>
 #include <kinova_driver/kinova_ros_types.h>
+#include "rclcpp/logging.hpp"
 
 namespace kinova
 {
@@ -94,7 +95,7 @@ bool areValuesClose(float first, float second, float tolerance)
  * @return output Quaternion
  * @warning DSP(KinovaPose) use Euler-XYZ convention, while ROS use Euler-ZYX by default.
  */
-tf::Quaternion EulerXYZ2Quaternion(float tx, float ty, float tz)
+tf2::Quaternion EulerXYZ2Quaternion(float tx, float ty, float tz)
 {
     float sx = sin(0.5*tx);
     float cx = cos(0.5*tx);
@@ -109,7 +110,7 @@ tf::Quaternion EulerXYZ2Quaternion(float tx, float ty, float tz)
     qz =  sx*sy*cz + cx*cy*sz;
     qw = -sx*sy*sz + cx*cy*cz;
 
-    tf::Quaternion q;
+    tf2::Quaternion q;
     q.setX(qx);
     q.setY(qy);
     q.setZ(qz);
@@ -127,9 +128,9 @@ tf::Quaternion EulerXYZ2Quaternion(float tx, float ty, float tz)
  * @return output rotation matrix
  * @warning DSP(KinovaPose) use Euler-XYZ convention, while ROS use Euler-ZYX by default.
  */
-tf::Matrix3x3 EulerXYZ2Matrix3x3(float tx, float ty, float tz)
+tf2::Matrix3x3 EulerXYZ2Matrix3x3(float tx, float ty, float tz)
 {
-    tf::Matrix3x3 Rot_m;
+    tf2::Matrix3x3 Rot_m;
     float sx = sin(tx);
     float cx = cos(tx);
     float sy = sin(ty);
@@ -152,7 +153,7 @@ tf::Matrix3x3 EulerXYZ2Matrix3x3(float tx, float ty, float tz)
  * @param tz output Euler angle tz
  * @warning DSP(KinovaPose) use Euler-XYZ convention, while ROS use Euler-ZYX by default.
  */
-void getEulerXYZ(tf::Matrix3x3 &Rot_matrix, float &tx, float &ty, float &tz)
+void getEulerXYZ(tf2::Matrix3x3 &Rot_matrix, float &tx, float &ty, float &tz)
 {
     float a11 = Rot_matrix.getRow(0).getX();
     float a12 = Rot_matrix.getRow(0).getY();
@@ -175,7 +176,7 @@ void getEulerXYZ(tf::Matrix3x3 &Rot_matrix, float &tx, float &ty, float &tz)
  * @param tz output Euler angle tz
  * @warning DSP(KinovaPose) use Euler-XYZ convention, while ROS use Euler-ZYX by default.
  */
-void getEulerXYZ(tf::Quaternion &q, float &tx, float &ty, float &tz)
+void getEulerXYZ(tf2::Quaternion &q, float &tx, float &ty, float &tz)
 {
     float qx = q.getX();
     float qy = q.getY();
@@ -191,7 +192,8 @@ bool valid_kinovaRobotType(const std::string &kinova_RobotType)
 {
     if(kinova_RobotType.size()!=8)
     {
-        ROS_ERROR("The kinova_RobotType should be 8 characters, but get %lu instead. kinova_RobotType is in format of: [{j|m|r|c}{1|2}{s|n}{4|6|7}{s|a}{2|3}{0}{0}]. eg: j2s7a300 refers to jaco v2 7DOF assistive 3fingers. Please be noted that not all options are valided for different robot types.", (unsigned long)(kinova_RobotType.size()));
+        RCLCPP_ERROR(rclcpp::get_logger("logger_name"), "The kinova_RobotType should be 8 characters, but get %lu instead. kinova_RobotType is in format of: [{j|m|r|c}{1|2}{s|n}{4|6|7}{s|a}{2|3}{0}{0}]. eg: j2s7a300 refers to jaco v2 7DOF assistive 3fingers. Please be noted that not all options are valided for different robot types.", (unsigned long)(kinova_RobotType.size()));
+
         return false;
     }
 
@@ -203,14 +205,14 @@ bool valid_kinovaRobotType(const std::string &kinova_RobotType)
         // check version
         if ((kinova_RobotType[1]!='1') && (kinova_RobotType[1]!='2'))
         {
-            ROS_ERROR("version error.");
+            RCLCPP_ERROR(rclcpp::get_logger("logger_name"), "version error.");
             return false;
         }
 
         // check wrist
         if ((kinova_RobotType[2]!='s') && (kinova_RobotType[2]!='n'))
         {
-            ROS_ERROR("wrist type error.");
+            RCLCPP_ERROR(rclcpp::get_logger("logger_name"), "wrist type error.");
             return false;
         }
 
@@ -224,14 +226,14 @@ bool valid_kinovaRobotType(const std::string &kinova_RobotType)
         // check model
         if ((kinova_RobotType[4]!='s') && (kinova_RobotType[4]!='a'))
         {
-            ROS_ERROR("model type error.");
+            RCLCPP_ERROR(rclcpp::get_logger("logger_name"), "model type error.");
             return false;
         }
 
         // check number of fingers
         if ((kinova_RobotType[5]!='2') && (kinova_RobotType[5]!='3'))
         {
-            ROS_ERROR("finger number error.");
+            RCLCPP_ERROR(rclcpp::get_logger("logger_name"), "finger number error.");
             return false;
         }
     }
@@ -291,10 +293,10 @@ const char* KinovaCommException::what() const throw()
  * @param pose ROS geometry_msgs[x,y,z,qx,qy,qz,qw], in meters and quaterion.
  * @warning KinovaPose use Euler-XYZ convention, while ROS use Euler-ZYX convention by default.
  */
-KinovaPose::KinovaPose(const geometry_msgs::Pose &pose)
+KinovaPose::KinovaPose(const geometry_msgs::msg::Pose &pose)
 {
-    tf::Quaternion q;
-    tf::quaternionMsgToTF(pose.orientation, q);
+    tf2::Quaternion q;
+    tf2::quaternionMsgTotf2(pose.orientation, q);
 
     X = static_cast<float>(pose.position.x);
     Y = static_cast<float>(pose.position.y);
@@ -322,16 +324,16 @@ KinovaPose::KinovaPose(const CartesianInfo &pose)
 
 /**
  * @brief construct geometric::Pose message from KinovaPose
- * @return geometry_msgs::Pose[x,y,z,qx,qy,qz,qw] position in meters, orientation is in Quaternion.
+ * @return geometry_msgs::msg::Pose[x,y,z,qx,qy,qz,qw] position in meters, orientation is in Quaternion.
  */
-geometry_msgs::Pose KinovaPose::constructPoseMsg()
+geometry_msgs::msg::Pose KinovaPose::constructPoseMsg()
 {
-    geometry_msgs::Pose pose;
-    tf::Quaternion position_quaternion;
+    geometry_msgs::msg::Pose pose;
+    tf2::Quaternion position_quaternion;
 
     // However, DSP using Euler-XYZ, while ROS using Euler-ZYX.
     KinovaPose::getQuaternion(position_quaternion);
-    tf::quaternionTFToMsg(position_quaternion, pose.orientation);
+    tf2::quaterniontf2ToMsg(position_quaternion, pose.orientation);
 
     pose.position.x = X;
     pose.position.y = Y;
@@ -355,7 +357,7 @@ kinova_msgs::KinovaPose KinovaPose::constructKinovaPoseMsg()
     return pose;
 }
 
-void KinovaPose::getQuaternion(tf::Quaternion &q)
+void KinovaPose::getQuaternion(tf2::Quaternion &q)
 {
     q = EulerXYZ2Quaternion(ThetaX, ThetaY, ThetaZ);
 }
@@ -368,9 +370,9 @@ void KinovaPose::getQuaternion(tf::Quaternion &q)
  *
  * @return geometry_msgs [Fx,Fy,Fz,Tx,Ty,Tz] in Newton and Nm.
  */
-geometry_msgs::Wrench KinovaPose::constructWrenchMsg()
+geometry_msgs::msg::Wrench KinovaPose::constructWrenchMsg()
 {
-    geometry_msgs::Wrench wrench;
+    geometry_msgs::msg::Wrench wrench;
 
     wrench.force.x  = X;
     wrench.force.y  = Y;
@@ -513,7 +515,7 @@ FingerAngles::FingerAngles(const FingersPosition &angle)
 }
 
 
-kinova_msgs::FingerPosition FingerAngles::constructFingersMsg()
+kinova_msgs::FingerPosition FingerAngles::constructf2ingersMsg()
 {
     kinova_msgs::FingerPosition angles;
     angles.finger1 = Finger1;

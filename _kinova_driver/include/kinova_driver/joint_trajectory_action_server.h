@@ -1,7 +1,7 @@
 #ifndef JOINT_TRAJECTORY_ACTION_SERVER_H
 #define JOINT_TRAJECTORY_ACTION_SERVER_H
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include <actionlib/server/simple_action_server.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>

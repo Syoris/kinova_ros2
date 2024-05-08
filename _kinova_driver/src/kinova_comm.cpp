@@ -43,7 +43,7 @@
  *
  */
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include "kinova_driver/kinova_comm.h"
 #include <string>
 #include <vector>

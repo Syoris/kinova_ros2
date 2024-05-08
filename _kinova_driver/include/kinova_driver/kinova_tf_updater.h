@@ -12,8 +12,8 @@
 
 #include <kinova_driver/kinova_arm_kinematics.h>
 
-#include <ros/ros.h>
-#include <std_msgs/String.h>
+#include "rclcpp/rclcpp.hpp"
+#include <std_msgs/msg/String.hpp>
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_listener.h>

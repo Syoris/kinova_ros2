@@ -46,7 +46,7 @@
 #ifndef KINOVA_DRIVER_KINOVA_FINGERS_ACTION_H
 #define KINOVA_DRIVER_KINOVA_FINGERS_ACTION_H
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include <actionlib/server/simple_action_server.h>
 
 #include <kinova_msgs/SetFingersPositionAction.h>

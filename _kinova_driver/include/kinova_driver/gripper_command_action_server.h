@@ -1,7 +1,7 @@
 #ifndef GRIPPER_COMMAND_ACTION_SERVER_H
 #define GRIPPER_COMMAND_ACTION_SERVER_H
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include <actionlib/server/simple_action_server.h>
 #include <actionlib/client/simple_action_client.h>
 #include <control_msgs/GripperCommandAction.h>

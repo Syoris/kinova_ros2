@@ -2,10 +2,10 @@
 #define KINOVA_JOINT_TRAJECTORY_CONTROLLER_H
 
 
-#include <ros/ros.h>
+#include "rclcpp/rclcpp.hpp"
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <sensor_msgs/JointState.h>
-#include <std_msgs/Duration.h>
+#include <std_msgs/msg/Duration.hpp>
 #include <kinova_msgs/JointVelocity.h>
 #include <boost/thread.hpp>
 
