@@ -21,32 +21,30 @@ class KinovaComm2
     ~KinovaComm2();
 
     // %Tag(general functions)
+    void stopAPI();
+    void startAPI();
+    bool isStopped();
 
-
-    // void stopAPI();
-    // void startAPI();
-    // bool isStopped();
-
-    // int robotType() const;
-    // void getQuickStatus(QuickStatus &quick_status);
-    // void getConfig(ClientConfigurations &config);
-    // void setConfig(const ClientConfigurations &config);
-    // void printConfig(const ClientConfigurations &config);
-    // void getControlType(int &controlType); //joint or cartesian control
-    // void getGeneralInformations(GeneralInformations &general_info);
-    // void getSensorsInfo(SensorsInfo &sensor_Info); //voltage, current, temperatue and accelerometers
-    // void getForcesInfo(ForcesInfo &force_Info); // joint torque and end-effector wrench
-    // void getGripperStatus(Gripper &gripper_status); // most complete information of each fingers, including model, motion, force, limits, etc.
-    // void homeArm(void);
-    // bool isHomed(void);
+    int robotType() const;
+    void getQuickStatus(QuickStatus &quick_status);
+    void getConfig(ClientConfigurations &config);
+    void setConfig(const ClientConfigurations &config);
+    void printConfig(const ClientConfigurations &config);
+    void getControlType(int &controlType); //joint or cartesian control
+    void getGeneralInformations(GeneralInformations &general_info);
+    void getSensorsInfo(SensorsInfo &sensor_Info); //voltage, current, temperatue and accelerometers
+    void getForcesInfo(ForcesInfo &force_Info); // joint torque and end-effector wrench
+    void getGripperStatus(Gripper &gripper_status); // most complete information of each fingers, including model, motion, force, limits, etc.
+    void homeArm(void);
+    bool isHomed(void);
     // void initFingers(void);
-    // void setEndEffectorOffset(unsigned int status, float x, float y, float z);
-    // void getEndEffectorOffset(unsigned int &status, float &x, float &y, float &z);
+    void setEndEffectorOffset(unsigned int status, float x, float y, float z);
+    void getEndEffectorOffset(unsigned int &status, float &x, float &y, float &z);
 
-    // // %EndTag(general functions)
+    // %EndTag(general functions)
 
 
-    // // %Tag(Angular Control)%
+    // %Tag(Angular Control)%
 
     // void setAngularControl();
     // void getAngularCommand(AngularPosition &angular_command);
@@ -60,36 +58,35 @@ class KinovaComm2
     // void getJointCurrent(AngularPosition &anguler_current);    
     // void printAngles(const KinovaAngles &angles);
 
-    // // %EndTag(Angular Control)%
+    // %EndTag(Angular Control)%
 
 
-    // // %Tag(Torque control)%
+    // %Tag(Torque control)%
+    //!1 for Torque control enabled
 
-    // //!1 for Torque control enabled
     // void SetTorqueControlState(int state);
     // void setJointTorques(float joint_torque[]);
     // void setZeroTorque();
     // void getGravityCompensatedTorques(KinovaAngles &torques);
 
-    // //Set torque parameters
+    //Set torque parameters
     // void setRobotCOMParam(GRAVITY_TYPE type, std::vector<float> params);
     // void setJointTorqueMinMax(AngularInfo &min, AngularInfo &max);
     // void setPayload(std::vector<float> payload);
     // void setToquesControlSafetyFactor(float factor);
     // int sendCartesianForceCommand(float force_cmd[COMMAND_SIZE]);
     // int runCOMParameterEstimation(ROBOT_TYPE type);
-    // //%EndTag(Torque control)%
+    //%EndTag(Torque control)%
 
 
-    // // %Tag(Cartesian Control)%
-
+    // %Tag(Cartesian Control)%
     // void setCartesianControl();    
     // void getCartesianCommand(CartesianPosition &cartesian_command);
     // void getCartesianPosition(KinovaPose &position);
 
-    // //! \brief send Pose command to robot
-    // //! \arg position - Pose command
-    // //! \arg push - If true clears previous trajectories
+    //! \brief send Pose command to robot
+    //! \arg position - Pose command
+    //! \arg push - If true clears previous trajectories
     // void setCartesianPosition(const KinovaPose &position, int timeout = 0, bool push = false);
     // void setCartesianVelocities(const CartesianInfo &velocities);
     // void setCartesianVelocitiesWithFingers(const CartesianInfo &velocities, const FingerAngles& fingers);
@@ -112,26 +109,26 @@ class KinovaComm2
     // void setFingerPositions(const FingerAngles &fingers, int timeout = 0, bool push = true);
     // void printFingers(const FingersPosition &fingers);   
 
-    // //Cartesian Admittance Control
+    //Cartesian Admittance Control
     // void startForceControl();
     // void stopForceControl();
 
-    // //!Avoid self collisions in Inverse Kinematics.
-    // //!Null space is used if available, else Cartesian command is modified
+    //!Avoid self collisions in Inverse Kinematics.
+    //!Null space is used if available, else Cartesian command is modified
     // int SelfCollisionAvoidanceInCartesianMode(int state);
 
-    // //!Avoid Singularities in Inverse Kinematics
-    // //!Null space is used if available, else Cartesian command is modified
+    //!Avoid Singularities in Inverse Kinematics
+    //!Null space is used if available, else Cartesian command is modified
     // int SingularityAvoidanceInCartesianMode(int state);
 
-    // //7 dof API
-    // //! Activates/deactivates control mode where robot moves in null space using the joystick
+    //7 dof API
+    //! Activates/deactivates control mode where robot moves in null space using the joystick
     // int SetRedundantJointNullSpaceMotion(int state);
 
-    // //!Resolve redundancy for 7 dof robot using Least square solution
+    //!Resolve redundancy for 7 dof robot using Least square solution
     // int SetRedundancyResolutionToleastSquares(int state);
-
-    //  // %EndTag(Cartesian Control)%
+     
+     // %EndTag(Cartesian Control)%
 
 
  private:

@@ -23,7 +23,7 @@ void* KinovaAPI::initCommandLayerFunction(const char* name)
         strcpy(functionName, "Ethernet_");
         strcat(functionName, name);
     }
-    void * function_pointer = dlsym(API_command_lib_,functionName);
+    void * function_pointer = dlsym(API_command_lib_, functionName);
     assert(function_pointer != NULL);
     return function_pointer;
 }

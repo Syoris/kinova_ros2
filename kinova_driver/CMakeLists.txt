@@ -67,22 +67,23 @@ target_include_directories(kinova_driver_lib PUBLIC
 )
 
 # kinova_arm_driver
-add_executable(kinova_arm_driver2
-  src/nodes/kinova_arm_driver2.cpp
+add_executable(kinova_arm_node
+  src/nodes/kinova_arm_node.cpp
 )
-target_include_directories(kinova_arm_driver2 PUBLIC
+target_include_directories(kinova_arm_node PUBLIC
   include)
-ament_target_dependencies(kinova_arm_driver2
+ament_target_dependencies(kinova_arm_node
   # geometry_msgs
   # kinova_msgs
   rclcpp
+  tf2_geometry_msgs
   # sensor_msgs
   # std_msgs
   # tf2
   # interactive_markers
   # visualization_msgs
 )
-target_link_libraries(kinova_arm_driver2 kinova_driver_lib)
+target_link_libraries(kinova_arm_node kinova_driver_lib)
 
 
 ##### INSTALL #####
@@ -98,7 +99,7 @@ install(FILES
 
 # Install executables and libraries
 install(TARGETS 
-  kinova_arm_driver2
+  kinova_arm_node
   # kinova_tf_updater
   # kinova_interactive_control
   # kinova_driver

@@ -297,8 +297,8 @@ KinovaPose::KinovaPose(const geometry_msgs::msg::Pose &pose)
 {
     tf2::Quaternion q;
     // tf2::quaternionMsgToTF(pose.orientation, q);
-    tf2::fromMsg(pose.position, q);
-
+    tf2::fromMsg(pose.orientation, q);
+    
     X = static_cast<float>(pose.position.x);
     Y = static_cast<float>(pose.position.y);
     Z = static_cast<float>(pose.position.z);
@@ -334,6 +334,7 @@ geometry_msgs::msg::Pose KinovaPose::constructPoseMsg()
 
     // However, DSP using Euler-XYZ, while ROS using Euler-ZYX.
     KinovaPose::getQuaternion(position_quaternion);
+    
     // tf::quaternionTFToMsg(position_quaternion, pose.orientation);
     pose.orientation = tf2::toMsg(position_quaternion);
 
