@@ -8,7 +8,7 @@
 
 #include "kinova_driver/kinova_api.h"
 #include "kinova_driver/kinova_comm2.h"
-// #include "kinova_driver/kinova_arm.h"
+#include "kinova_driver/kinova_arm2.h"
 // #include "kinova_driver/kinova_tool_pose_action.h"
 // #include "kinova_driver/kinova_joint_angles_action.h"
 // #include "kinova_driver/kinova_fingers_action.h"
@@ -23,10 +23,12 @@ public:
         RCLCPP_INFO(this->get_logger(), "KinovaArmDriver2 constructor");
 
         // Parameters
-        this->declare_parameter("kinova_robot_type", "TYPE");
+        this->declare_parameter("kinova_robot_type", "j2s7s300");
         this->declare_parameter("kinova_robot_name", "ROBOT");
         this->declare_parameter("connection_type", "USB");
         this->declare_parameter("serial_number", "serial_number");
+        this->declare_parameter("status_interval_seconds", 0.1);
+        
         
         kinova_robot_name_ = this->get_parameter("kinova_robot_name").as_string();
         kinova_robot_type_ = this->get_parameter("kinova_robot_type").as_string();
@@ -53,13 +55,19 @@ public:
         //     ros::Duration(1.0).sleep();
         // }
 
-        is_first_init_ = false;
     }
 
     void init_driver(){
         RCLCPP_DEBUG(this->get_logger(), "KinovaArmDriver2 init_driver");
 
-        comm_ = std::make_unique<kinova::KinovaComm2>(this->shared_from_this(), api_mutex_, is_first_init_, kinova_robot_type_);
+        comm_ = std::make_shared<kinova::KinovaComm2>(this->shared_from_this(), api_mutex_, is_first_init_, kinova_robot_type_);
+        arm_ = std::make_shared<kinova::KinovaArm2>(this->shared_from_this(), comm_, kinova_robot_type_, kinova_robot_name_);
+        // kinova::KinovaPoseActionServer pose_server(comm, nh, kinova_robotType, kinova_robotName);
+        // kinova::KinovaAnglesActionServer angles_server(comm, nh);
+        // kinova::KinovaFingersActionServer fingers_server(comm, nh);
+        // kinova::JointTrajectoryController joint_trajectory_controller(comm, nh);
+
+        is_first_init_ = false;
     }
 
 private:
@@ -71,7 +79,8 @@ private:
     std::string kinova_robot_type_;
     
     // Classes
-    std::unique_ptr<kinova::KinovaComm2> comm_;
+    std::shared_ptr<kinova::KinovaComm2> comm_;
+    std::shared_ptr<kinova::KinovaArm2> arm_;
 
 };
 

@@ -14,7 +14,7 @@ find_package(kinova_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(angles REQUIRED)
-# find_package(sensor_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 
 ##### BUILD #####
@@ -35,12 +35,12 @@ find_package(angles REQUIRED)
 # kinova_driver_lib: Library with api, comm, ...
 add_library(kinova_driver_lib
   src/kinova_api.cpp
-  # src/kinova_arm.cpp
+  src/kinova_arm2.cpp
   src/kinova_comm2.cpp
+  src/kinova_ros2_types.cpp
   # src/kinova_tool_pose_action.cpp
   # src/kinova_joint_angles_action.cpp
   # src/kinova_fingers_action.cpp
-  src/kinova_ros2_types.cpp
   # src/kinova_joint_trajectory_controller.cpp
   # include/kinova_driver/kinova_joint_trajectory_controller.h
   # include/kinova_driver/kinova_joint_angles_action.h
@@ -58,6 +58,7 @@ ament_target_dependencies(kinova_driver_lib
   rclcpp
   geometry_msgs
   kinova_msgs
+  sensor_msgs
   tf2
   tf2_geometry_msgs
   angles

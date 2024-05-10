@@ -1,0 +1,23 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/charles/workspaces/my_ws/install/kinova_msgs/include/**",
+        "/home/charles/workspaces/my_ws/install/kinova_driver/include/**",
+        "/opt/ros/iron/include/**",
+        "/home/charles/workspaces/my_ws/src/kinova_ros2/kinova_driver/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}

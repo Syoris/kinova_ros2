@@ -37,7 +37,7 @@ class KinovaComm2
     void getGripperStatus(Gripper &gripper_status); // most complete information of each fingers, including model, motion, force, limits, etc.
     void homeArm(void);
     bool isHomed(void);
-    // void initFingers(void);
+    void initFingers(void);
     void setEndEffectorOffset(unsigned int status, float x, float y, float z);
     void getEndEffectorOffset(unsigned int &status, float &x, float &y, float &z);
 
@@ -46,17 +46,17 @@ class KinovaComm2
 
     // %Tag(Angular Control)%
 
-    // void setAngularControl();
-    // void getAngularCommand(AngularPosition &angular_command);
-    // void getJointAngles(KinovaAngles &angles);
-    // void setJointAngles(const KinovaAngles &angles, double speedJoint123 = 20,
-    //                     double speedJoint4567 = 20, int timeout = 0, bool push = true);
-    // void getJointVelocities(KinovaAngles &vels);
-    // void setJointVelocities(const AngularInfo& joint_vel);    
-    // void getJointAccelerations(AngularAcceleration &joint_acc);
-    // void getJointTorques(KinovaAngles &tqs);
-    // void getJointCurrent(AngularPosition &anguler_current);    
-    // void printAngles(const KinovaAngles &angles);
+    void setAngularControl();
+    void getAngularCommand(AngularPosition &angular_command);
+    void getJointAngles(KinovaAngles &angles);
+    void setJointAngles(const KinovaAngles &angles, double speedJoint123 = 20,
+                        double speedJoint4567 = 20, int timeout = 0, bool push = true);
+    void getJointVelocities(KinovaAngles &vels);
+    void setJointVelocities(const AngularInfo& joint_vel);    
+    void getJointAccelerations(AngularAcceleration &joint_acc);
+    void getJointTorques(KinovaAngles &tqs);
+    void getJointCurrent(AngularPosition &anguler_current);    
+    void printAngles(const KinovaAngles &angles);
 
     // %EndTag(Angular Control)%
 
@@ -65,15 +65,15 @@ class KinovaComm2
     //!1 for Torque control enabled
 
     // void SetTorqueControlState(int state);
-    // void setJointTorques(float joint_torque[]);
+    void setJointTorques(float joint_torque[]);
     // void setZeroTorque();
-    // void getGravityCompensatedTorques(KinovaAngles &torques);
+    void getGravityCompensatedTorques(KinovaAngles &torques);
 
     //Set torque parameters
     // void setRobotCOMParam(GRAVITY_TYPE type, std::vector<float> params);
     // void setJointTorqueMinMax(AngularInfo &min, AngularInfo &max);
     // void setPayload(std::vector<float> payload);
-    // void setToquesControlSafetyFactor(float factor);
+    // void setTorquesControlSafetyFactor(float factor);
     // int sendCartesianForceCommand(float force_cmd[COMMAND_SIZE]);
     // int runCOMParameterEstimation(ROBOT_TYPE type);
     //%EndTag(Torque control)%
@@ -88,7 +88,7 @@ class KinovaComm2
     //! \arg position - Pose command
     //! \arg push - If true clears previous trajectories
     // void setCartesianPosition(const KinovaPose &position, int timeout = 0, bool push = false);
-    // void setCartesianVelocities(const CartesianInfo &velocities);
+    void setCartesianVelocities(const CartesianInfo &velocities);
     // void setCartesianVelocitiesWithFingers(const CartesianInfo &velocities, const FingerAngles& fingers);
     // void setCartesianVelocitiesWithFingerVelocity(const CartesianInfo &velocities, const FingerAngles& fingers);
     // float getMaxTranslationVelocity(void);
@@ -98,14 +98,14 @@ class KinovaComm2
     // void getCartesianForce(KinovaPose &position);
     // void setCartesianForceMinMax(const CartesianInfo &min, const CartesianInfo& max);
     // void setCartesianInertiaDamping(const CartesianInfo &inertia, const CartesianInfo& damping);
-    // void printPosition(const KinovaPose &position);
+    void printPosition(const KinovaPose &position);
 
     // void getUserCommand(UserPosition &user_position);
-    // void getGlobalTrajectoryInfo(TrajectoryFIFO &trajectoryFIFO);
+    void getGlobalTrajectoryInfo(TrajectoryFIFO &trajectoryFIFO);
     // void eraseAllTrajectories(void);
 
     // int numFingers() const;
-    // void getFingerPositions(FingerAngles &fingers);
+    void getFingerPositions(FingerAngles &fingers);
     // void setFingerPositions(const FingerAngles &fingers, int timeout = 0, bool push = true);
     // void printFingers(const FingersPosition &fingers);   
 
