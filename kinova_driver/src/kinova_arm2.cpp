@@ -186,10 +186,10 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     cartesian_command_publisher_ = node_->create_publisher<kinova_msgs::msg::KinovaPose>("out/cartesian_command", 2);
 
     /* Set up Subscribers*/
-    // joint_velocity_subscriber_ = node_.subscribe("in/joint_velocity", 1,
-    //                              &KinovaArm2::jointVelocityCallback, this);
-    // cartesian_velocity_subscriber_ = node_.subscribe("in/cartesian_velocity", 1,
-    //                                  &KinovaArm2::cartesianVelocityCallback, this);
+    joint_velocity_subscriber_ = node_->create_subscription<kinova_msgs::msg::JointVelocity>("in/joint_velocity", 1, std::bind(&KinovaArm2::jointVelocitySubscriberCallback, this, _1));
+
+    cartesian_velocity_subscriber_ = node_->create_subscription<kinova_msgs::msg::PoseVelocity>("in/cartesian_velocity", 1, std::bind(&KinovaArm2::cartesianVelocitySubscriberCallback, this, _1));                                    
+
     // cartesian_velocity_with_fingers_subscriber_ = node_.subscribe("in/cartesian_velocity_with_fingers", 1,
     //                                  &KinovaArm2::cartesianVelocityWithFingersCallback, this);   
     // cartesian_velocity_with_finger_velocity_subscriber_ = node_.subscribe("in/cartesian_velocity_with_finger_velocity", 1,
@@ -294,21 +294,21 @@ void KinovaArm2::activateNullSpaceModeCallback(const std::shared_ptr<kinova_msgs
 // }
 
 
-// void KinovaArm2::jointVelocityCallback(const kinova_msgs::JointVelocityConstPtr& joint_vel)
-// {
-//     if (!kinova_comm_->isStopped())
-//     {
-//         joint_velocities_.Actuator1 = joint_vel->joint1;
-//         joint_velocities_.Actuator2 = joint_vel->joint2;
-//         joint_velocities_.Actuator3 = joint_vel->joint3;
-//         joint_velocities_.Actuator4 = joint_vel->joint4;
-//         joint_velocities_.Actuator5 = joint_vel->joint5;
-//         joint_velocities_.Actuator6 = joint_vel->joint6;
-//         joint_velocities_.Actuator7 = joint_vel->joint7;
+void KinovaArm2::jointVelocitySubscriberCallback(const kinova_msgs::msg::JointVelocity& joint_vel)
+{
+    if (!kinova_comm_->isStopped())
+    {
+        joint_velocities_.Actuator1 = joint_vel.joint1;
+        joint_velocities_.Actuator2 = joint_vel.joint2;
+        joint_velocities_.Actuator3 = joint_vel.joint3;
+        joint_velocities_.Actuator4 = joint_vel.joint4;
+        joint_velocities_.Actuator5 = joint_vel.joint5;
+        joint_velocities_.Actuator6 = joint_vel.joint6;
+        joint_velocities_.Actuator7 = joint_vel.joint7;
 
-//         kinova_comm_->setJointVelocities(joint_velocities_);
-//     }
-// }
+        kinova_comm_->setJointVelocities(joint_velocities_);
+    }
+}
 
 
 // void KinovaArm2::jointTorqueSubscriberCallback(const kinova_msgs::JointTorqueConstPtr& joint_torque)
@@ -469,21 +469,21 @@ void KinovaArm2::runCOMParameterEstimationCallback(const std::shared_ptr<kinova_
 // }
 
 
-// void KinovaArm2::cartesianVelocityCallback(const kinova_msgs::PoseVelocityConstPtr& cartesian_vel)
-// {
-//     if (!kinova_comm_->isStopped())
-//     {
-//         cartesian_velocities_.X = cartesian_vel->twist_linear_x;
-//         cartesian_velocities_.Y = cartesian_vel->twist_linear_y;
-//         cartesian_velocities_.Z = cartesian_vel->twist_linear_z;
-//         cartesian_velocities_.ThetaX = cartesian_vel->twist_angular_x;
-//         cartesian_velocities_.ThetaY = cartesian_vel->twist_angular_y;
-//         cartesian_velocities_.ThetaZ = cartesian_vel->twist_angular_z;
+void KinovaArm2::cartesianVelocitySubscriberCallback(const kinova_msgs::msg::PoseVelocity& cartesian_vel)
+{
+    if (!kinova_comm_->isStopped())
+    {
+        cartesian_velocities_.X = cartesian_vel.twist_linear_x;
+        cartesian_velocities_.Y = cartesian_vel.twist_linear_y;
+        cartesian_velocities_.Z = cartesian_vel.twist_linear_z;
+        cartesian_velocities_.ThetaX = cartesian_vel.twist_angular_x;
+        cartesian_velocities_.ThetaY = cartesian_vel.twist_angular_y;
+        cartesian_velocities_.ThetaZ = cartesian_vel.twist_angular_z;
 
-//         // orientation velocity of cartesian_velocities_ is based on twist.angular
-//         kinova_comm_->setCartesianVelocities(cartesian_velocities_);
-//     }
-// }
+        // orientation velocity of cartesian_velocities_ is based on twist.angular
+        kinova_comm_->setCartesianVelocities(cartesian_velocities_);
+    }
+}
 
 
 // void KinovaArm2::cartesianVelocityWithFingersCallback(const kinova_msgs::PoseVelocityWithFingersConstPtr& cartesian_vel_with_fingers)

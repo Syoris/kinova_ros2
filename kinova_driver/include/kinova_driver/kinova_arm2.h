@@ -32,15 +32,15 @@
 #include <kinova_msgs/srv/zero_torques.hpp>
 #include <kinova_msgs/srv/run_com_parameters_estimation.hpp>
 
-#include <kinova_msgs/msg/joint_velocity.h>
-#include <kinova_msgs/msg/pose_velocity.h>
-#include <kinova_msgs/msg/pose_velocity_with_fingers.h>
-#include <kinova_msgs/msg/pose_velocity_with_finger_velocity.h>
-#include <kinova_msgs/msg/joint_torque.h>
-#include <kinova_msgs/msg/finger_position.h>
-#include <kinova_msgs/msg/joint_angles.h>
-#include <kinova_msgs/msg/kinova_pose.h>
-#include <kinova_msgs/msg/cartesian_force.h>
+#include <kinova_msgs/msg/joint_velocity.hpp>
+#include <kinova_msgs/msg/pose_velocity.hpp>
+#include <kinova_msgs/msg/pose_velocity_with_fingers.hpp>
+#include <kinova_msgs/msg/pose_velocity_with_finger_velocity.hpp>
+#include <kinova_msgs/msg/joint_torque.hpp>
+#include <kinova_msgs/msg/finger_position.hpp>
+#include <kinova_msgs/msg/joint_angles.hpp>
+#include <kinova_msgs/msg/kinova_pose.hpp>
+#include <kinova_msgs/msg/cartesian_force.hpp>
 
 #include <time.h>
 #include <math.h>
@@ -68,9 +68,9 @@ class KinovaArm2
     KinovaArm2(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2, const std::string &kinova_robotType, const std::string &kinova_robotName);
     ~KinovaArm2();
 
-    // //Subscriber callbacks --------------------------------------------------------
-    // void jointVelocityCallback(const kinova_msgs::JointVelocityConstPtr& joint_vel);
-    // void cartesianVelocityCallback(const kinova_msgs::PoseVelocityConstPtr& cartesian_vel);
+    //Subscriber callbacks --------------------------------------------------------
+    void jointVelocitySubscriberCallback(const kinova_msgs::msg::JointVelocity& joint_vel);
+    void cartesianVelocitySubscriberCallback(const kinova_msgs::msg::PoseVelocity& cartesian_vel);
     // void cartesianVelocityWithFingersCallback(const kinova_msgs::PoseVelocityWithFingersConstPtr& cartesian_vel_with_fingers);
     // void cartesianVelocityWithFingerVelocityCallback(const kinova_msgs::PoseVelocityWithFingerVelocityConstPtr& cartesian_vel_with_fingers);
     // void jointTorqueSubscriberCallback(const kinova_msgs::JointTorqueConstPtr& joint_torque);
@@ -131,8 +131,8 @@ class KinovaArm2
     std::shared_ptr<KinovaComm2> kinova_comm_;
 
     // Publishers, subscribers, services
-    // ros::Subscriber joint_velocity_subscriber_;
-    // ros::Subscriber cartesian_velocity_subscriber_;
+    rclcpp::Subscription<kinova_msgs::msg::JointVelocity>::SharedPtr joint_velocity_subscriber_;
+    rclcpp::Subscription<kinova_msgs::msg::PoseVelocity>::SharedPtr cartesian_velocity_subscriber_;
     // ros::Subscriber cartesian_velocity_with_fingers_subscriber_;
     // ros::Subscriber cartesian_velocity_with_finger_velocity_subscriber_;
     // ros::Subscriber joint_torque_subscriber_;
