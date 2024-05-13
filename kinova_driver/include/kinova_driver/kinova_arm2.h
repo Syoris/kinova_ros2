@@ -20,17 +20,17 @@
 #include <sensor_msgs/msg/joint_state.hpp>
 
 #include <kinova_msgs/srv/stop.hpp>
-#include <kinova_msgs/srv/start.h>
-#include <kinova_msgs/srv/home_arm.h>
-#include <kinova_msgs/srv/set_force_control_params.h>
-#include <kinova_msgs/srv/set_end_effector_offset.h>
-#include <kinova_msgs/srv/set_null_space_mode_state.h>
-#include <kinova_msgs/srv/set_torque_control_mode.h>
-#include <kinova_msgs/srv/set_torque_control_parameters.h>
-#include <kinova_msgs/srv/clear_trajectories.h>
-#include <kinova_msgs/srv/add_pose_to_cartesian_trajectory.h>
-#include <kinova_msgs/srv/zero_torques.h>
-#include <kinova_msgs/srv/run_com_parameters_estimation.h>
+#include <kinova_msgs/srv/start.hpp>
+#include <kinova_msgs/srv/home_arm.hpp>
+#include <kinova_msgs/srv/set_force_control_params.hpp>
+#include <kinova_msgs/srv/set_end_effector_offset.hpp>
+#include <kinova_msgs/srv/set_null_space_mode_state.hpp>
+#include <kinova_msgs/srv/set_torque_control_mode.hpp>
+#include <kinova_msgs/srv/set_torque_control_parameters.hpp>
+#include <kinova_msgs/srv/clear_trajectories.hpp>
+#include <kinova_msgs/srv/add_pose_to_cartesian_trajectory.hpp>
+#include <kinova_msgs/srv/zero_torques.hpp>
+#include <kinova_msgs/srv/run_com_parameters_estimation.hpp>
 
 #include <kinova_msgs/msg/joint_velocity.h>
 #include <kinova_msgs/msg/pose_velocity.h>
@@ -76,19 +76,24 @@ class KinovaArm2
     // void jointTorqueSubscriberCallback(const kinova_msgs::JointTorqueConstPtr& joint_torque);
     // void forceSubscriberCallback(const kinova_msgs::CartesianForceConstPtr& force);
 
-    // // Service callbacks -----------------------------------------------------------
-    // bool stopServiceCallback(kinova_msgs::Stop::Request &req, kinova_msgs::Stop::Response &res);
-    // bool startServiceCallback(kinova_msgs::Start::Request &req, kinova_msgs::Start::Response &res);
-    // bool homeArmServiceCallback(kinova_msgs::HomeArm::Request &req, kinova_msgs::HomeArm::Response &res);
-    // bool ActivateNullSpaceModeCallback(kinova_msgs::SetNullSpaceModeState::Request &req,
-    //                                    kinova_msgs::SetNullSpaceModeState::Response &res);
-    // bool addCartesianPoseToTrajectory(kinova_msgs::AddPoseToCartesianTrajectory::Request &req,
-    //                             kinova_msgs::AddPoseToCartesianTrajectory::Response &res);
-    // bool clearTrajectoriesServiceCallback(kinova_msgs::ClearTrajectories::Request &req,
-    //                                       kinova_msgs::ClearTrajectories::Response &res);
+    // Service callbacks -----------------------------------------------------------    
+    void stopServiceCallback(const std::shared_ptr<kinova_msgs::srv::Stop::Request> request,  std::shared_ptr<kinova_msgs::srv::Stop::Response> res);
 
-    // bool setEndEffectorOffsetCallback(kinova_msgs::SetEndEffectorOffset::Request& req,
-    //                                   kinova_msgs::SetEndEffectorOffset::Response& res);
+    void startServiceCallback(const std::shared_ptr<kinova_msgs::srv::Start::Request> request, std::shared_ptr<kinova_msgs::srv::Start::Response> res);
+    
+    void homeArmServiceCallback(const std::shared_ptr<kinova_msgs::srv::HomeArm::Request> request, 
+    std::shared_ptr<kinova_msgs::srv::HomeArm::Response> res);
+
+    void activateNullSpaceModeCallback(const std::shared_ptr<kinova_msgs::srv::SetNullSpaceModeState::Request> request,
+                                       std::shared_ptr<kinova_msgs::srv::SetNullSpaceModeState::Response> res);
+
+    void addCartesianPoseToTrajectory(const std::shared_ptr<kinova_msgs::srv::AddPoseToCartesianTrajectory::Request> request, std::shared_ptr<kinova_msgs::srv::AddPoseToCartesianTrajectory::Response> res);
+
+    void clearTrajectoriesServiceCallback(const std::shared_ptr<kinova_msgs::srv::ClearTrajectories::Request> request,
+                                          std::shared_ptr<kinova_msgs::srv::ClearTrajectories::Response> res);
+
+    void setEndEffectorOffsetCallback(const std::shared_ptr<kinova_msgs::srv::SetEndEffectorOffset::Request> request,
+                                      std::shared_ptr<kinova_msgs::srv::SetEndEffectorOffset::Response> res);                            
 
     // //Torque control --------------------------------------------------------------
     // bool setForceControlParamsCallback(kinova_msgs::SetForceControlParams::Request &req,
@@ -102,10 +107,12 @@ class KinovaArm2
     //                                  kinova_msgs::SetTorqueControlMode::Response &res);
     // bool setTorqueControlParametersService(kinova_msgs::SetTorqueControlParameters::Request &req,
     //                                        kinova_msgs::SetTorqueControlParameters::Response &res);
-    // bool setJointTorquesToZeroService(kinova_msgs::ZeroTorques::Request &req,
-    //                                   kinova_msgs::ZeroTorques::Response &res);
-    // bool runCOMParameterEstimationService(kinova_msgs::RunCOMParametersEstimation::Request &req,
-    //                                       kinova_msgs::RunCOMParametersEstimation::Response &res);
+
+    void setJointTorquesToZeroCallback(const std::shared_ptr<kinova_msgs::srv::ZeroTorques::Request> request,
+                                      std::shared_ptr<kinova_msgs::srv::ZeroTorques::Response> res);      
+
+    void runCOMParameterEstimationCallback(const std::shared_ptr<kinova_msgs::srv::RunCOMParametersEstimation::Request> request, std::shared_ptr<kinova_msgs::srv::RunCOMParametersEstimation::Response> res);   
+                             
 
  private:
     // void positionTimer(const ros::TimerEvent&);
@@ -114,9 +121,9 @@ class KinovaArm2
     void statusTimer();
 
     void publishJointAngles(void);
-    // void publishToolPosition(void);
-    // void publishToolWrench(void);
-    // void publishFingerPosition(void);
+    void publishToolPosition(void);
+    void publishToolWrench(void);
+    void publishFingerPosition(void);
 
     // tf::TransformListener tf_listener_;
 
@@ -141,20 +148,21 @@ class KinovaArm2
     rclcpp::Publisher<kinova_msgs::msg::JointAngles>::SharedPtr joint_command_publisher_;
     rclcpp::Publisher<kinova_msgs::msg::KinovaPose>::SharedPtr cartesian_command_publisher_;
 
-    // ros::ServiceServer stop_service_;
-    // ros::ServiceServer start_service_;
-    // ros::ServiceServer homing_service_;
-    // ros::ServiceServer start_null_space_service_;
-    // ros::ServiceServer add_trajectory_;
-    // ros::ServiceServer clear_trajectories_;
+    // Services
+    rclcpp::Service<kinova_msgs::srv::Stop>::SharedPtr stop_service_;
+    rclcpp::Service<kinova_msgs::srv::Start>::SharedPtr start_service_;
+    rclcpp::Service<kinova_msgs::srv::HomeArm>::SharedPtr homing_service_;
+    rclcpp::Service<kinova_msgs::srv::SetNullSpaceModeState>::SharedPtr start_null_space_service_;
+    rclcpp::Service<kinova_msgs::srv::AddPoseToCartesianTrajectory>::SharedPtr add_trajectory_;
+    rclcpp::Service<kinova_msgs::srv::ClearTrajectories>::SharedPtr clear_trajectories_;
 
     // ros::ServiceServer set_torque_control_mode_service_;
     // ros::ServiceServer set_torque_control_parameters_service_;
-    // ros::ServiceServer set_actuator_torques_to_zero_;
+    rclcpp::Service<kinova_msgs::srv::ZeroTorques>::SharedPtr set_actuator_torques_to_zero_;
     // ros::ServiceServer set_force_control_params_service_;
     // ros::ServiceServer start_force_control_service_;
     // ros::ServiceServer stop_force_control_service_;
-    // ros::ServiceServer run_COM_parameter_estimation_service_;
+    rclcpp::Service<kinova_msgs::srv::RunCOMParametersEstimation>::SharedPtr run_COM_parameter_estimation_service_;
 
     // ros::ServiceServer set_end_effector_offset_service_;
 

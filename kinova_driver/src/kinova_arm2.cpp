@@ -30,7 +30,7 @@ namespace
 
     inline void convertKinDeg(std::vector<double>& qds)
     {
-        for (int i = 0; i < qds.size(); ++i) {
+        for (std::vector<double>::size_type i = 0; i < qds.size(); ++i) {
             double& qd = qds[i];
             convertKinDeg(qd);
         }
@@ -131,29 +131,37 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     }
 
     /* Set up Services */
+    using namespace std::placeholders;
+
     RCLCPP_INFO(node_->get_logger(), "(kinova_arm2) Setting up services");
-    // stop_service_ = node_.advertiseService("in/stop", &KinovaArm2::stopServiceCallback, this);
+
+    stop_service_ = node_->create_service<kinova_msgs::srv::Stop>("in/stop", std::bind(&KinovaArm2::stopServiceCallback, this, _1, _2));
+
     // start_service_ = node_.advertiseService("in/start", &KinovaArm2::startServiceCallback, this);
-    // homing_service_ = node_.advertiseService("in/home_arm", &KinovaArm2::homeArmServiceCallback, this);
-    // add_trajectory_ = node_.advertiseService("in/add_pose_to_Cartesian_trajectory",
-    //                   &KinovaArm2::addCartesianPoseToTrajectory, this);
-    // clear_trajectories_ = node_.advertiseService("in/clear_trajectories",
-    //                       &KinovaArm2::clearTrajectoriesServiceCallback, this);
+    start_service_ = node_->create_service<kinova_msgs::srv::Start>("in/start", std::bind(&KinovaArm2::startServiceCallback, this, _1, _2));
+
+    homing_service_ = node_->create_service<kinova_msgs::srv::HomeArm>("in/home_arm", std::bind(&KinovaArm2::homeArmServiceCallback, this, _1, _2));
+
+    add_trajectory_ = node_->create_service<kinova_msgs::srv::AddPoseToCartesianTrajectory>(
+        "in/add_pose_to_Cartesian_trajectory", std::bind(&KinovaArm2::addCartesianPoseToTrajectory, this, _1, _2));
+        
+    clear_trajectories_ = node_->create_service<kinova_msgs::srv::ClearTrajectories>(
+        "in/clear_trajectories", std::bind(&KinovaArm2::clearTrajectoriesServiceCallback, this, _1, _2));
 
     // set_force_control_params_service_ = node_.advertiseService("in/set_force_control_params", &KinovaArm2::setForceControlParamsCallback, this);
     // start_force_control_service_ = node_.advertiseService("in/start_force_control", &KinovaArm2::startForceControlCallback, this);
     // stop_force_control_service_ = node_.advertiseService("in/stop_force_control", &KinovaArm2::stopForceControlCallback, this);
-    // set_actuator_torques_to_zero_ = node_.advertiseService(
-    //             "in/set_zero_torques", &KinovaArm2::setJointTorquesToZeroService, this);
-    // run_COM_parameter_estimation_service_ = node_.advertiseService(
-    //             "in/run_COM_parameters_estimation",
-    //             &KinovaArm2::runCOMParameterEstimationService,this);
+    
+    set_actuator_torques_to_zero_ = node_->create_service<kinova_msgs::srv::ZeroTorques>("in/set_zero_torques", std::bind(&KinovaArm2::setJointTorquesToZeroCallback, this, _1, _2));
+    
+    run_COM_parameter_estimation_service_ = node_->create_service<kinova_msgs::srv::RunCOMParametersEstimation>("in/run_COM_parameters_estimation", std::bind(&KinovaArm2::runCOMParameterEstimationCallback, this, _1, _2));
 
     // set_end_effector_offset_service_ = node_.advertiseService("in/set_end_effector_offset",
     //     &KinovaArm2::setEndEffectorOffsetCallback, this);
 
-    // start_null_space_service_ = node_.advertiseService("in/set_null_space_mode_state", &KinovaArm2::ActivateNullSpaceModeCallback, this);
+    // start_null_space_service_ = node_.advertiseService("in/set_null_space_mode_state", &KinovaArm2::activateNullSpaceModeCallback, this);
     // set_torque_control_mode_service_ = node_.advertiseService("in/set_torque_control_mode", &KinovaArm2::setTorqueControlModeService, this);
+
     // set_torque_control_parameters_service_ = node_.advertiseService
     //         ("in/set_torque_control_parameters",
     //          &KinovaArm2::setTorqueControlParametersService,this);
@@ -199,10 +207,10 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     // updating the joint_state topic.
     // node_.param("convert_joint_velocities", convert_joint_velocities_, true);
 
+    
+    RCLCPP_INFO(node_->get_logger(), "(kinova_arm2) TIMER");
     // status_timer_ = node_.createTimer(ros::Duration(status_interval_seconds_),
     //                                        &KinovaArm2::statusTimer, this);
-
-    RCLCPP_INFO(node_->get_logger(), "(kinova_arm2) TIMER");
 
     status_timer_ = node_->create_wall_timer(
       std::chrono::milliseconds(static_cast<int>(status_interval_seconds_ * 1000)), std::bind(&KinovaArm2::statusTimer, this));
@@ -217,25 +225,24 @@ KinovaArm2::~KinovaArm2()
 }
 
 
-// bool KinovaArm2::homeArmServiceCallback(kinova_msgs::HomeArm::Request &req, kinova_msgs::HomeArm::Response &res)
-// {
-//     kinova_comm_.homeArm();
-//     kinova_comm_.initFingers();
-//     res.homearm_result = "KINOVA ARM HAS BEEN RETURNED HOME";
-//     return true;
-// }
+void KinovaArm2::homeArmServiceCallback(const std::shared_ptr<kinova_msgs::srv::HomeArm::Request> /*request*/, 
+    std::shared_ptr<kinova_msgs::srv::HomeArm::Response> res)
+{
+    kinova_comm_->homeArm();
+    kinova_comm_->initFingers();
+    res->homearm_result = "KINOVA ARM HAS BEEN RETURNED HOME";
+}
 
 
-// bool KinovaArm2::ActivateNullSpaceModeCallback(kinova_msgs::SetNullSpaceModeState::Request &req, kinova_msgs::SetNullSpaceModeState::Response &res)
-// {
-//     kinova_comm_.SetRedundantJointNullSpaceMotion(req.state);
-//     return true;
-// }
+void KinovaArm2::activateNullSpaceModeCallback(const std::shared_ptr<kinova_msgs::srv::SetNullSpaceModeState::Request> request, std::shared_ptr<kinova_msgs::srv::SetNullSpaceModeState::Response> /*res*/)
+{
+    kinova_comm_->SetRedundantJointNullSpaceMotion(request->state);
+}
 
 
 // bool KinovaArm2::setTorqueControlModeService(kinova_msgs::SetTorqueControlMode::Request &req, kinova_msgs::SetTorqueControlMode::Response &res)
 // {
-//     kinova_comm_.SetTorqueControlState(req.state);
+//     kinova_comm_->SetTorqueControlState(req.state);
 //     return true;
 // }
 
@@ -244,12 +251,12 @@ KinovaArm2::~KinovaArm2()
 // {
 //     float safetyFactor;
 //     node_.param<float>("torque_parameters/safety_factor", safetyFactor,1.0);
-//     kinova_comm_.setToquesControlSafetyFactor(safetyFactor);
+//     kinova_comm_->setToquesControlSafetyFactor(safetyFactor);
 
 //     std::vector<float> payload;
 //     if (node_.getParam("payload", payload))
 //     {
-//         kinova_comm_.setPayload(payload);
+//         kinova_comm_->setPayload(payload);
 //     }
 
 //     std::vector<float> min_torque, max_torque;
@@ -267,7 +274,7 @@ KinovaArm2::~KinovaArm2()
 //             min_torque_actuator[i] = min_torque.at(i);
 //             max_torque_actuator[i] = max_torque.at(i);
 //         }
-//         kinova_comm_.setJointTorqueMinMax(min_torque_info,max_torque_info);
+//         kinova_comm_->setJointTorqueMinMax(min_torque_info,max_torque_info);
 //     }
 
 //     std::vector<float> com_parameters;
@@ -277,9 +284,9 @@ KinovaArm2::~KinovaArm2()
 //         node_.param("torque_parameters/use_estimated_COM_parameters",
 //                               use_estimated_COM,true);
 //         if (use_estimated_COM == true)
-//             kinova_comm_.setRobotCOMParam(OPTIMAL,com_parameters);
+//             kinova_comm_->setRobotCOMParam(OPTIMAL,com_parameters);
 //         else
-//             kinova_comm_.setRobotCOMParam(MANUAL_INPUT,com_parameters);
+//             kinova_comm_->setRobotCOMParam(MANUAL_INPUT,com_parameters);
 
 //     }
 
@@ -289,7 +296,7 @@ KinovaArm2::~KinovaArm2()
 
 // void KinovaArm2::jointVelocityCallback(const kinova_msgs::JointVelocityConstPtr& joint_vel)
 // {
-//     if (!kinova_comm_.isStopped())
+//     if (!kinova_comm_->isStopped())
 //     {
 //         joint_velocities_.Actuator1 = joint_vel->joint1;
 //         joint_velocities_.Actuator2 = joint_vel->joint2;
@@ -299,14 +306,14 @@ KinovaArm2::~KinovaArm2()
 //         joint_velocities_.Actuator6 = joint_vel->joint6;
 //         joint_velocities_.Actuator7 = joint_vel->joint7;
 
-//         kinova_comm_.setJointVelocities(joint_velocities_);
+//         kinova_comm_->setJointVelocities(joint_velocities_);
 //     }
 // }
 
 
 // void KinovaArm2::jointTorqueSubscriberCallback(const kinova_msgs::JointTorqueConstPtr& joint_torque)
 // {
-//     if (!kinova_comm_.isStopped())
+//     if (!kinova_comm_->isStopped())
 //     {
 //         l_joint_torque_[0] = joint_torque->joint1;
 //         l_joint_torque_[1] = joint_torque->joint2;
@@ -316,7 +323,7 @@ KinovaArm2::~KinovaArm2()
 //         l_joint_torque_[5] = joint_torque->joint6;
 //         l_joint_torque_[6] = joint_torque->joint7;
 
-//         kinova_comm_.setJointTorques(l_joint_torque_);
+//         kinova_comm_->setJointTorques(l_joint_torque_);
 
 //     }
 // }
@@ -324,7 +331,7 @@ KinovaArm2::~KinovaArm2()
 
 // void KinovaArm2::forceSubscriberCallback(const kinova_msgs::CartesianForceConstPtr& force)
 // {
-//     if (!kinova_comm_.isStopped())
+//     if (!kinova_comm_->isStopped())
 //     {
 //         l_force_cmd_[0] = force->force_x;
 //         l_force_cmd_[1] = force->force_y;
@@ -333,62 +340,56 @@ KinovaArm2::~KinovaArm2()
 //         l_force_cmd_[4] = force->torque_y;
 //         l_force_cmd_[5] = force->torque_z;
 
-//         kinova_comm_.sendCartesianForceCommand(l_force_cmd_);
+//         kinova_comm_->sendCartesianForceCommand(l_force_cmd_);
 //     }
 // }
 
 
-// /*!
-//  * \brief Handler for "stop" service.
-//  *
-//  * Instantly stops the arm and prevents further movement until start service is
-//  * invoked.
-//  */
-// bool KinovaArm2::stopServiceCallback(kinova_msgs::Stop::Request &req, kinova_msgs::Stop::Response &res)
-// {
-//     kinova_comm_.stopAPI();
-//     res.stop_result = "Arm stopped";
-//     ROS_DEBUG("Arm stop requested");
-//     return true;
-// }
+/*!
+ * \brief Handler for "stop" service.
+ *
+ * Instantly stops the arm and prevents further movement until start service is
+ * invoked.
+ */
+void KinovaArm2::stopServiceCallback(const std::shared_ptr<kinova_msgs::srv::Stop::Request> /*request*/,  std::shared_ptr<kinova_msgs::srv::Stop::Response> res)
+{
+    kinova_comm_->stopAPI();
+    res->stop_result = "Arm stopped";
+    RCLCPP_INFO(node_->get_logger(), "Arm stop requested");
+}
 
 
-// /*!
-//  * \brief Handler for "start" service.
-//  *
-//  * Re-enables control of the arm after a stop.
-//  */
-// bool KinovaArm2::startServiceCallback(kinova_msgs::Start::Request &req, kinova_msgs::Start::Response &res)
-// {
-//     kinova_comm_.startAPI();
-//     res.start_result = "Arm started";
-//     ROS_DEBUG("Arm start requested");
-//     return true;
-// }
+/*!
+ * \brief Handler for "start" service.
+ *
+ * Re-enables control of the arm after a stop.
+ */
+void KinovaArm2::startServiceCallback(const std::shared_ptr<kinova_msgs::srv::Start::Request> /*request*/, std::shared_ptr<kinova_msgs::srv::Start::Response> res)
+{
+    kinova_comm_->startAPI();
+    res->start_result = "Arm started";
+    RCLCPP_DEBUG(node_->get_logger(), "Arm start requested");
+}
 
 
-// bool KinovaArm2::addCartesianPoseToTrajectory(kinova_msgs::AddPoseToCartesianTrajectory::Request &req,
-//                             kinova_msgs::AddPoseToCartesianTrajectory::Response &res)
-// {
-//     KinovaPose pose;
-//     pose.X = req.X;
-//     pose.Y = req.Y;
-//     pose.Z = req.Z;
-//     pose.ThetaX = req.ThetaX;
-//     pose.ThetaY = req.ThetaY;
-//     pose.ThetaZ = req.ThetaZ;
-//     kinova_comm_.setCartesianPosition(pose,false);
-//     return true;
-// }
+void KinovaArm2::addCartesianPoseToTrajectory(const std::shared_ptr<kinova_msgs::srv::AddPoseToCartesianTrajectory::Request> request, std::shared_ptr<kinova_msgs::srv::AddPoseToCartesianTrajectory::Response> /*res*/)
+{
+    KinovaPose pose;
+    pose.X = request->x;
+    pose.Y = request->y;
+    pose.Z = request->z;
+    pose.ThetaX = request->theta_x;
+    pose.ThetaY = request->theta_y;
+    pose.ThetaZ = request->theta_z;
+    kinova_comm_->setCartesianPosition(pose,false);
+}
 
 
-// bool KinovaArm2::clearTrajectoriesServiceCallback(
-//         kinova_msgs::ClearTrajectories::Request &req,
-//         kinova_msgs::ClearTrajectories::Response &res)
-// {
-//     kinova_comm_.eraseAllTrajectories();
-//     return true;
-// }
+void KinovaArm2::clearTrajectoriesServiceCallback(const std::shared_ptr<kinova_msgs::srv::ClearTrajectories::Request> /*request*/, std::shared_ptr<kinova_msgs::srv::ClearTrajectories::Response> /*res*/)
+{
+    RCLCPP_DEBUG(node_->get_logger(), "Clearing all trajectories");
+    kinova_comm_->eraseAllTrajectories();
+}
 
 
 // bool KinovaArm2::setForceControlParamsCallback(
@@ -409,7 +410,7 @@ KinovaArm2::~KinovaArm2()
 //     damping.ThetaY = req.damping_angular.y;
 //     damping.ThetaZ = req.damping_angular.z;
 
-//     kinova_comm_.setCartesianInertiaDamping(inertia, damping);
+//     kinova_comm_->setCartesianInertiaDamping(inertia, damping);
 
 //     force_min.X      = req.force_min_linear.x;
 //     force_min.Y      = req.force_min_linear.y;
@@ -424,7 +425,7 @@ KinovaArm2::~KinovaArm2()
 //     force_max.ThetaY = req.force_max_angular.y;
 //     force_max.ThetaZ = req.force_max_angular.z;
 
-//     kinova_comm_.setCartesianForceMinMax(force_min, force_max);
+//     kinova_comm_->setCartesianForceMinMax(force_min, force_max);
 
 //     return true;
 // }
@@ -432,7 +433,7 @@ KinovaArm2::~KinovaArm2()
 
 // bool KinovaArm2::startForceControlCallback(kinova_msgs::Start::Request &req, kinova_msgs::Start::Response &res)
 // {
-//     kinova_comm_.startForceControl();
+//     kinova_comm_->startForceControl();
 //     res.start_result = "Start force control requested.";
 //     return true;
 // }
@@ -440,32 +441,29 @@ KinovaArm2::~KinovaArm2()
 
 // bool KinovaArm2::stopForceControlCallback(kinova_msgs::Stop::Request &req, kinova_msgs::Stop::Response &res)
 // {
-//     kinova_comm_.stopForceControl();
+//     kinova_comm_->stopForceControl();
 //     res.stop_result = "Stop force control requested.";
 //     return true;
 // }
 
 
-// bool KinovaArm2::setJointTorquesToZeroService(kinova_msgs::ZeroTorques::Request &req,
-//                                              kinova_msgs::ZeroTorques::Response &res)
-// {
-//     kinova_comm_.setZeroTorque();
-//     return true;
-// }
+void KinovaArm2::setJointTorquesToZeroCallback(const std::shared_ptr<kinova_msgs::srv::ZeroTorques::Request> /*request*/, std::shared_ptr<kinova_msgs::srv::ZeroTorques::Response> /*res*/)
+{
+    RCLCPP_DEBUG(node_->get_logger(), "Setting joint torques to zero");
+    kinova_comm_->setZeroTorque();
+}
 
 
-// bool KinovaArm2::runCOMParameterEstimationService(
-//         kinova_msgs::RunCOMParametersEstimation::Request &req,
-//         kinova_msgs::RunCOMParametersEstimation::Response &res)
-// {
-//     kinova_comm_.runCOMParameterEstimation(robot_type_);
-//     return true;
-// }
+void KinovaArm2::runCOMParameterEstimationCallback(const std::shared_ptr<kinova_msgs::srv::RunCOMParametersEstimation::Request> /*request*/, std::shared_ptr<kinova_msgs::srv::RunCOMParametersEstimation::Response> /*res*/)
+{
+    RCLCPP_DEBUG(node_->get_logger(), "Running COM parameter estimation");
+    kinova_comm_->runCOMParameterEstimation(robot_type_);
+}
 
 
 // bool KinovaArm2::setEndEffectorOffsetCallback(kinova_msgs::SetEndEffectorOffset::Request &req, kinova_msgs::SetEndEffectorOffset::Response &res)
 // {
-//     kinova_comm_.setEndEffectorOffset(req.status, req.offset.x, req.offset.y, req.offset.z);
+//     kinova_comm_->setEndEffectorOffset(req.status, req.offset.x, req.offset.y, req.offset.z);
 
 //     return true;
 // }
@@ -473,7 +471,7 @@ KinovaArm2::~KinovaArm2()
 
 // void KinovaArm2::cartesianVelocityCallback(const kinova_msgs::PoseVelocityConstPtr& cartesian_vel)
 // {
-//     if (!kinova_comm_.isStopped())
+//     if (!kinova_comm_->isStopped())
 //     {
 //         cartesian_velocities_.X = cartesian_vel->twist_linear_x;
 //         cartesian_velocities_.Y = cartesian_vel->twist_linear_y;
@@ -483,14 +481,14 @@ KinovaArm2::~KinovaArm2()
 //         cartesian_velocities_.ThetaZ = cartesian_vel->twist_angular_z;
 
 //         // orientation velocity of cartesian_velocities_ is based on twist.angular
-//         kinova_comm_.setCartesianVelocities(cartesian_velocities_);
+//         kinova_comm_->setCartesianVelocities(cartesian_velocities_);
 //     }
 // }
 
 
 // void KinovaArm2::cartesianVelocityWithFingersCallback(const kinova_msgs::PoseVelocityWithFingersConstPtr& cartesian_vel_with_fingers)
 // {
-//     if (!kinova_comm_.isStopped())
+//     if (!kinova_comm_->isStopped())
 //     {
 //         cartesian_velocities_.X = cartesian_vel_with_fingers->twist_linear_x;
 //         cartesian_velocities_.Y = cartesian_vel_with_fingers->twist_linear_y;
@@ -505,7 +503,7 @@ KinovaArm2::~KinovaArm2()
 //         // If the arm moves in velocity, the fingers will too no matter what
 //         // We need to see if the fingers have reached the correct position, and if not, set the Fingers command accordingly to match the command
 //         FingerAngles fingers;
-//         kinova_comm_.getFingerPositions(fingers);
+//         kinova_comm_->getFingerPositions(fingers);
 //         float error = fingers_closure_percentage / 100.0 * finger_max_turn - fingers.Finger1; 
 //         float kp = 2.0; // tried that, it works
 //         float command = 0.0;
@@ -521,14 +519,14 @@ KinovaArm2::~KinovaArm2()
 //         fingers.Finger3 = command;
 
 //         // orientation velocity of cartesian_velocities_ is based on twist.angular
-//         kinova_comm_.setCartesianVelocitiesWithFingers(cartesian_velocities_, fingers);
+//         kinova_comm_->setCartesianVelocitiesWithFingers(cartesian_velocities_, fingers);
 //     }
 // }
 
 
 // void KinovaArm2::cartesianVelocityWithFingerVelocityCallback(const kinova_msgs::PoseVelocityWithFingerVelocityConstPtr& cartesian_vel_with_finger_velocity)
 // {
-//     if (!kinova_comm_.isStopped())
+//     if (!kinova_comm_->isStopped())
 //     {
 //         cartesian_velocities_.X = cartesian_vel_with_finger_velocity->twist_linear_x;
 //         cartesian_velocities_.Y = cartesian_vel_with_finger_velocity->twist_linear_y;
@@ -543,7 +541,7 @@ KinovaArm2::~KinovaArm2()
 //         fingers.Finger3 = cartesian_vel_with_finger_velocity->finger3;
 
 //         // orientation velocity of cartesian_velocities_ is based on twist.angular
-//         kinova_comm_.setCartesianVelocitiesWithFingerVelocity(cartesian_velocities_, fingers);
+//         kinova_comm_->setCartesianVelocitiesWithFingerVelocity(cartesian_velocities_, fingers);
 //     }
 // }
 
@@ -687,72 +685,72 @@ void KinovaArm2::publishJointAngles(void)
 }
 
 
-// /*!
-//  * \brief Publishes the current cartesian coordinates
-//  */
-// void KinovaArm2::publishToolPosition(void)
-// {
-//     KinovaPose pose;
-//     geometry_msgs::PoseStamped current_position;
-//     kinova_comm_.getCartesianPosition(pose);
+/*!
+ * \brief Publishes the current cartesian coordinates
+ */
+void KinovaArm2::publishToolPosition(void)
+{
+    KinovaPose pose;
+    geometry_msgs::msg::PoseStamped current_position;
+    kinova_comm_->getCartesianPosition(pose);
 
 
-//     CartesianPosition cartesian_command;
-//     kinova_comm_.getCartesianCommand(cartesian_command);
-//     kinova_msgs::KinovaPose cartesian_command_msg = KinovaPose(cartesian_command.Coordinates).constructKinovaPoseMsg();
+    CartesianPosition cartesian_command;
+    kinova_comm_->getCartesianCommand(cartesian_command);
+    kinova_msgs::msg::KinovaPose cartesian_command_msg = KinovaPose(cartesian_command.Coordinates).constructKinovaPoseMsg();
 
-//     current_position.pose            = pose.constructPoseMsg();
-//     current_position.header.stamp    = ros::Time::now();
-//     current_position.header.frame_id = tf_prefix_ + "link_base";
+    current_position.pose            = pose.constructPoseMsg();
+    current_position.header.stamp    = rclcpp::Clock().now();
+    current_position.header.frame_id = tf_prefix_ + "link_base";
 
-//     tool_position_publisher_.publish(current_position);
-//     cartesian_command_publisher_.publish(cartesian_command_msg);
-// }
-
-
-// /*!
-//  * \brief Publishes the current cartesian forces at the end effector.
-//  */
-// void KinovaArm2::publishToolWrench(void)
-// {
-//     KinovaPose wrench;
-//     geometry_msgs::WrenchStamped current_wrench;
-
-//     kinova_comm_.getCartesianForce(wrench);
-
-//     current_wrench.wrench          = wrench.constructWrenchMsg();
-//     current_wrench.header.stamp    = ros::Time::now();
-//     // TODO: Rotate wrench to fit the end effector frame.
-//     // Right now, the orientation of the wrench is in the API's (base) frame.
-//     current_wrench.header.frame_id = tf_prefix_ + "link_base";
+    tool_position_publisher_->publish(current_position);
+    cartesian_command_publisher_->publish(cartesian_command_msg);
+}
 
 
-//     // Same conversion issue as with velocities:
-//     if (convert_joint_velocities_) {
-//         convertKinDeg(current_wrench.wrench.torque);
-//     }
+/*!
+ * \brief Publishes the current cartesian forces at the end effector.
+ */
+void KinovaArm2::publishToolWrench(void)
+{
+    KinovaPose wrench;
+    geometry_msgs::msg::WrenchStamped current_wrench;
 
-//     tool_wrench_publisher_.publish(current_wrench);
-// }
+    kinova_comm_->getCartesianForce(wrench);
+
+    current_wrench.wrench          = wrench.constructWrenchMsg();
+    current_wrench.header.stamp    = rclcpp::Clock().now();
+    // TODO: Rotate wrench to fit the end effector frame.
+    // Right now, the orientation of the wrench is in the API's (base) frame.
+    current_wrench.header.frame_id = tf_prefix_ + "link_base";
 
 
-// /*!
-//  * \brief Publishes the current finger positions.
-//  */
-// void KinovaArm2::publishFingerPosition(void)
-// {
-//     FingerAngles fingers;
-//     kinova_comm_.getFingerPositions(fingers);
-//     finger_position_publisher_.publish(fingers.constructFingersMsg());
-// }
+    // Same conversion issue as with velocities:
+    if (convert_joint_velocities_) {
+        convertKinDeg(current_wrench.wrench.torque);
+    }
+
+    tool_wrench_publisher_->publish(current_wrench);
+}
+
+
+/*!
+ * \brief Publishes the current finger positions.
+ */
+void KinovaArm2::publishFingerPosition(void)
+{
+    FingerAngles fingers;
+    kinova_comm_->getFingerPositions(fingers);
+    finger_position_publisher_->publish(fingers.constructFingersMsg());
+}
 
 
 void KinovaArm2::statusTimer()
 {
     RCLCPP_INFO(node_->get_logger(), "Status timer callback");
     publishJointAngles();
-    // publishToolPosition();
-    // publishToolWrench();
+    publishToolPosition();
+    publishToolWrench();
     // publishFingerPosition();
 }
 

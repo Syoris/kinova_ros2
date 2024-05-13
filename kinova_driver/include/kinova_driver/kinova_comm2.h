@@ -66,7 +66,7 @@ class KinovaComm2
 
     // void SetTorqueControlState(int state);
     void setJointTorques(float joint_torque[]);
-    // void setZeroTorque();
+    void setZeroTorque();
     void getGravityCompensatedTorques(KinovaAngles &torques);
 
     //Set torque parameters
@@ -75,19 +75,19 @@ class KinovaComm2
     // void setPayload(std::vector<float> payload);
     // void setTorquesControlSafetyFactor(float factor);
     // int sendCartesianForceCommand(float force_cmd[COMMAND_SIZE]);
-    // int runCOMParameterEstimation(ROBOT_TYPE type);
+    int runCOMParameterEstimation(ROBOT_TYPE type);
     //%EndTag(Torque control)%
 
 
     // %Tag(Cartesian Control)%
     // void setCartesianControl();    
-    // void getCartesianCommand(CartesianPosition &cartesian_command);
-    // void getCartesianPosition(KinovaPose &position);
+    void getCartesianCommand(CartesianPosition &cartesian_command);
+    void getCartesianPosition(KinovaPose &position);
 
     //! \brief send Pose command to robot
     //! \arg position - Pose command
     //! \arg push - If true clears previous trajectories
-    // void setCartesianPosition(const KinovaPose &position, int timeout = 0, bool push = false);
+    void setCartesianPosition(const KinovaPose &position, int timeout = 0, bool push = false);
     void setCartesianVelocities(const CartesianInfo &velocities);
     // void setCartesianVelocitiesWithFingers(const CartesianInfo &velocities, const FingerAngles& fingers);
     // void setCartesianVelocitiesWithFingerVelocity(const CartesianInfo &velocities, const FingerAngles& fingers);
@@ -95,14 +95,14 @@ class KinovaComm2
     // void setMaxTranslationVelocity(const float &max_trans_vel);
     // float getMaxOrientationVelocity(void);
     // void setMaxOrientationVelocity(const float &max_orient_vel);
-    // void getCartesianForce(KinovaPose &position);
+    void getCartesianForce(KinovaPose &position);
     // void setCartesianForceMinMax(const CartesianInfo &min, const CartesianInfo& max);
     // void setCartesianInertiaDamping(const CartesianInfo &inertia, const CartesianInfo& damping);
     void printPosition(const KinovaPose &position);
 
     // void getUserCommand(UserPosition &user_position);
     void getGlobalTrajectoryInfo(TrajectoryFIFO &trajectoryFIFO);
-    // void eraseAllTrajectories(void);
+    void eraseAllTrajectories(void);
 
     // int numFingers() const;
     void getFingerPositions(FingerAngles &fingers);
@@ -123,7 +123,7 @@ class KinovaComm2
 
     //7 dof API
     //! Activates/deactivates control mode where robot moves in null space using the joystick
-    // int SetRedundantJointNullSpaceMotion(int state);
+    int SetRedundantJointNullSpaceMotion(int state);
 
     //!Resolve redundancy for 7 dof robot using Least square solution
     // int SetRedundancyResolutionToleastSquares(int state);

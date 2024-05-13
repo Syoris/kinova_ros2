@@ -606,7 +606,7 @@ void KinovaComm2::getJointAngles(KinovaAngles &angles)
  * @param timeout default value 0.0, not used.
  * @param push default true, errase all trajectory before request motion..
  */
-void KinovaComm2::setJointAngles(const KinovaAngles &angles, double speedJoint123, double speedJoint4567, int timeout, bool push)
+void KinovaComm2::setJointAngles(const KinovaAngles &angles, double speedJoint123, double speedJoint4567, int /*timeout*/, bool push)
 {
     boost::recursive_mutex::scoped_lock lock(api_mutex_);
 
@@ -833,24 +833,25 @@ void KinovaComm2::printAngles(const KinovaAngles &angles)
 // }
 
 
-// /**
-//   *@brief Set zero torque for all joints
-//  */
-// void KinovaComm2::setZeroTorque()
-// {
-//     boost::recursive_mutex::scoped_lock lock(api_mutex_);
-//     int actuator_address[] = {16,17,18,19,20,21,25};
-//     int result;
-//     for (int i=0;i<num_joints_;i++)
-//     {
-//         result = kinova_api_.setTorqueZero(actuator_address[i]);
-//     }
-//     if (result != NO_ERROR_KINOVA)
-//     {
-//         throw KinovaCommException("Could not set zero torques", result);
-//     }
-//     ROS_WARN("Torques for all joints set to zero");
-// }
+/**
+  *@brief Set zero torque for all joints
+ */
+void KinovaComm2::setZeroTorque()
+{
+    boost::recursive_mutex::scoped_lock lock(api_mutex_);
+    int actuator_address[] = {16,17,18,19,20,21,25};
+    int result;
+    for (int i=0;i<num_joints_;i++)
+    {
+        result = kinova_api_.setTorqueZero(actuator_address[i]);
+    }
+    if (result != NO_ERROR_KINOVA)
+    {
+        throw KinovaCommException("Could not set zero torques", result);
+    }
+    // ROS_WARN("Torques for all joints set to zero");
+    RCLCPP_WARN(node_->get_logger(), "Torques for all joints set to zero");
+}
 
 
 void KinovaComm2::getGravityCompensatedTorques(KinovaAngles &tqs)
@@ -954,53 +955,53 @@ void KinovaComm2::getGravityCompensatedTorques(KinovaAngles &tqs)
 // }
 
 
-// /**
-// * @brief This function is used to run a sequence to estimate the optimal gravity parameters when the robot is
-// * standing (Z).
+/**
+* @brief This function is used to run a sequence to estimate the optimal gravity parameters when the robot is
+* standing (Z).
 
-// The arm must be in Trajectory-Position mode before to launch the procedure.
+The arm must be in Trajectory-Position mode before to launch the procedure.
 
-// Before using this procedure, you should make sure that the torque sensors are well calibrated. This procedure is
-// explained in the user guide and in the Advanced Specification Guide.
+Before using this procedure, you should make sure that the torque sensors are well calibrated. This procedure is
+explained in the user guide and in the Advanced Specification Guide.
 
-// When the program is launched, the robot will execute a trajectory. The user must remain alert and turn off the
-// robot if something wrong occurs (for example if the robot collides with an object). When the program ends, it will
-// output the parameters in the console and in a text file named “ParametersOptimal_Z.txt” in the program folder.
-// These parameters can then be sent as input to the function SetOptimalZParam().
-// *
-// * @param type The robot type
-// * @param OptimalzParam The result of the sequence
-// */
-// int KinovaComm2::runCOMParameterEstimation(ROBOT_TYPE type)
-// {
-//     float COMparams[GRAVITY_PARAM_SIZE];
-//     memset(&COMparams[0],0,sizeof(COMparams));
-//     int result;
-//     if(type == SPHERICAL_7DOF_SERVICE)
-//     {
-//         RCLCPP_INFO(node_->get_logger(), "Running 7 dof robot COM estimation sequence");
-//         result = kinova_api_.runGravityZEstimationSequence7DOF(type,COMparams);
-//     }
-//     else
-//     {
-//         double params[OPTIMAL_Z_PARAM_SIZE];
-//         RCLCPP_INFO(node_->get_logger(), "Running COM estimation sequence");
-//         result = kinova_api_.runGravityZEstimationSequence(type,params);
-//         for (int i=0;i<OPTIMAL_Z_PARAM_SIZE;i++)
-//             COMparams[i] = (float)params[i];
-//     }
-//     if (result != NO_ERROR_KINOVA)
-//     {
-//         throw KinovaCommException("Could not launch COM parameter estimation sequence", result);
-//     }
-//     result = kinova_api_.setGravityOptimalZParam(COMparams);
-//     if (result != NO_ERROR_KINOVA && result!=2005)
-//     {
-//         throw KinovaCommException("Could not set COM Parameters", result);
-//     }
+When the program is launched, the robot will execute a trajectory. The user must remain alert and turn off the
+robot if something wrong occurs (for example if the robot collides with an object). When the program ends, it will
+output the parameters in the console and in a text file named “ParametersOptimal_Z.txt” in the program folder.
+These parameters can then be sent as input to the function SetOptimalZParam().
+*
+* @param type The robot type
+* @param OptimalzParam The result of the sequence
+*/
+int KinovaComm2::runCOMParameterEstimation(ROBOT_TYPE type)
+{
+    float COMparams[GRAVITY_PARAM_SIZE];
+    memset(&COMparams[0],0,sizeof(COMparams));
+    int result;
+    if(type == SPHERICAL_7DOF_SERVICE)
+    {
+        RCLCPP_INFO(node_->get_logger(), "Running 7 dof robot COM estimation sequence");
+        result = kinova_api_.runGravityZEstimationSequence7DOF(type,COMparams);
+    }
+    else
+    {
+        double params[OPTIMAL_Z_PARAM_SIZE];
+        RCLCPP_INFO(node_->get_logger(), "Running COM estimation sequence");
+        result = kinova_api_.runGravityZEstimationSequence(type,params);
+        for (int i=0;i<OPTIMAL_Z_PARAM_SIZE;i++)
+            COMparams[i] = (float)params[i];
+    }
+    if (result != NO_ERROR_KINOVA)
+    {
+        throw KinovaCommException("Could not launch COM parameter estimation sequence", result);
+    }
+    result = kinova_api_.setGravityOptimalZParam(COMparams);
+    if (result != NO_ERROR_KINOVA && result!=2005)
+    {
+        throw KinovaCommException("Could not set COM Parameters", result);
+    }
 
-//     return 1;
-// }
+    return 1;
+}
 
 
 
@@ -1053,121 +1054,122 @@ void KinovaComm2::getGravityCompensatedTorques(KinovaAngles &tqs)
 // }
 
 
-// /**
-//  * @brief This function get the cartesian command of the end effector. The Cartesian orientation is expressed in Euler-XYZ convention (Rot=Rx*Ry*Rz). However, in ROS by default using Euler-ZYX. tf::Matrix3x3 EulerYPR = Rz(tz)*Ry(ty)*Rx(tx)
-//  * @param cartesian_command An CartesianPosition struct containing the values of end-effector and fingers.
-//  *
-//  * @htmlonly
-//  *
-//  * <table border="0" cellspacing="10">
-//  * <tr>
-//  * <th>Member</th>
-//  * <th>Unit</th>
-//  * </tr>
-//  * <tr><td width="50">X</td><td>meter</td></tr>
-//  * <tr><td>Y</td><td>meter</td></tsr>
-//  * <tr><td>Z</td><td>meter</td></tr>
-//  * <tr><td>Theta X</td><td>RAD</td></tr>
-//  * <tr><td>Theta Y</td><td>RAD</td></tr>
-//  * <tr><td>Theta Z</td><td>RAD</td></tr>
-//  * <tr><td>Finger 1</td><td>No unit</td></tr>
-//  * <tr><td>Finger 2</td><td>No unit</td></tr>
-//  * <tr><td>Finger 3</td><td>No unit</td></tr>
-//  * </table>
-//  *
-//  * @endhtmlonly
-//  */
-// void KinovaComm2::getCartesianCommand(CartesianPosition &cartesian_command)
-// {
-//     boost::recursive_mutex::scoped_lock lock(api_mutex_);
-//     memset(&cartesian_command, 0, sizeof(cartesian_command));
-//     int result = kinova_api_.getCartesianCommand(cartesian_command);
-//     if (result != NO_ERROR_KINOVA)
-//     {
-//         throw KinovaCommException("Could not get the Cartesian command", result);
-//     }
-// }
+/**
+ * @brief This function get the cartesian command of the end effector. The Cartesian orientation is expressed in Euler-XYZ convention (Rot=Rx*Ry*Rz). However, in ROS by default using Euler-ZYX. tf::Matrix3x3 EulerYPR = Rz(tz)*Ry(ty)*Rx(tx)
+ * @param cartesian_command An CartesianPosition struct containing the values of end-effector and fingers.
+ *
+ * @htmlonly
+ *
+ * <table border="0" cellspacing="10">
+ * <tr>
+ * <th>Member</th>
+ * <th>Unit</th>
+ * </tr>
+ * <tr><td width="50">X</td><td>meter</td></tr>
+ * <tr><td>Y</td><td>meter</td></tsr>
+ * <tr><td>Z</td><td>meter</td></tr>
+ * <tr><td>Theta X</td><td>RAD</td></tr>
+ * <tr><td>Theta Y</td><td>RAD</td></tr>
+ * <tr><td>Theta Z</td><td>RAD</td></tr>
+ * <tr><td>Finger 1</td><td>No unit</td></tr>
+ * <tr><td>Finger 2</td><td>No unit</td></tr>
+ * <tr><td>Finger 3</td><td>No unit</td></tr>
+ * </table>
+ *
+ * @endhtmlonly
+ */
+void KinovaComm2::getCartesianCommand(CartesianPosition &cartesian_command)
+{
+    boost::recursive_mutex::scoped_lock lock(api_mutex_);
+    memset(&cartesian_command, 0, sizeof(cartesian_command));
+    int result = kinova_api_.getCartesianCommand(cartesian_command);
+    if (result != NO_ERROR_KINOVA)
+    {
+        throw KinovaCommException("Could not get the Cartesian command", result);
+    }
+}
 
 
-// /**
-//  * @brief This function returns the cartesian position of the robotical arm's end effector.
-//  * In KinovaPose, orientation is expressed in Euler-XYZ convention (Rot=Rx*Ry*Rz). However, in ROS by default using Euler-ZYX. tf::Matrix3x3 EulerYPR = Rz(tz)*Ry(ty)*Rx(tx)
-//  * @param position pose in [X,Y,Z,ThetaX,ThetaY,ThetaZ] form, Units in meters and radians.
-//  */
-// void KinovaComm2::getCartesianPosition(KinovaPose &position)
-// {
-//     boost::recursive_mutex::scoped_lock lock(api_mutex_);
-//     CartesianPosition kinova_cartesian_position;
-//     memset(&kinova_cartesian_position, 0, sizeof(kinova_cartesian_position));  // zero structure
+/**
+ * @brief This function returns the cartesian position of the robotical arm's end effector.
+ * In KinovaPose, orientation is expressed in Euler-XYZ convention (Rot=Rx*Ry*Rz). However, in ROS by default using Euler-ZYX. tf::Matrix3x3 EulerYPR = Rz(tz)*Ry(ty)*Rx(tx)
+ * @param position pose in [X,Y,Z,ThetaX,ThetaY,ThetaZ] form, Units in meters and radians.
+ */
+void KinovaComm2::getCartesianPosition(KinovaPose &position)
+{
+    boost::recursive_mutex::scoped_lock lock(api_mutex_);
+    CartesianPosition kinova_cartesian_position;
+    memset(&kinova_cartesian_position, 0, sizeof(kinova_cartesian_position));  // zero structure
 
-//     int result = kinova_api_.getCartesianPosition(kinova_cartesian_position);
-//     if (result != NO_ERROR_KINOVA)
-//     {
-//         throw KinovaCommException("Could not get the Cartesian position", result);
-//     }
+    int result = kinova_api_.getCartesianPosition(kinova_cartesian_position);
+    if (result != NO_ERROR_KINOVA)
+    {
+        throw KinovaCommException("Could not get the Cartesian position", result);
+    }
 
-// //    ROS_INFO_STREAM_ONCE("Cartesian pose in [X,Y,Z, ThetaX, ThetaY, ThetaZ] is : " << kinova_cartesian_position.Coordinates.X << ", "
-// //                    << kinova_cartesian_position.Coordinates.Y << ", "
-// //                    << kinova_cartesian_position.Coordinates.Z << ", "
-// //                    << kinova_cartesian_position.Coordinates.ThetaX << ", "
-// //                    << kinova_cartesian_position.Coordinates.ThetaY << ", "
-// //                    << kinova_cartesian_position.Coordinates.ThetaZ << std::endl);
+//    ROS_INFO_STREAM_ONCE("Cartesian pose in [X,Y,Z, ThetaX, ThetaY, ThetaZ] is : " << kinova_cartesian_position.Coordinates.X << ", "
+//                    << kinova_cartesian_position.Coordinates.Y << ", "
+//                    << kinova_cartesian_position.Coordinates.Z << ", "
+//                    << kinova_cartesian_position.Coordinates.ThetaX << ", "
+//                    << kinova_cartesian_position.Coordinates.ThetaY << ", "
+//                    << kinova_cartesian_position.Coordinates.ThetaZ << std::endl);
 
-//     position = KinovaPose(kinova_cartesian_position.Coordinates);
-// }
+    position = KinovaPose(kinova_cartesian_position.Coordinates);
+}
 
 
-// /**
-//  * @brief Sends a cartesian coordinate trajectory to the Kinova arm.
-//  * This function sends trajectory point(Cartesian) that will be added in the robotical arm's FIFO. Waits until the arm has stopped moving before releasing control of the API. sendBasicTrajectory() is called in api to complete the motion.
-//  * In KinovaPose, orientation is expressed in Euler-XYZ convention (Rot=Rx*Ry*Rz). However, in ROS by default using Euler-ZYX. tf::Matrix3x3 EulerYPR = Rz(tz)*Ry(ty)*Rx(tx)
-//  * @param pose target pose of robot [X,Y,Z, ThetaX, ThetaY, ThetaZ], unit in meter and radians.
-//  * @param timeout default 0.0, not used.
-//  * @param push default false, does not erase previous trajectory point before new motion. If you want to erase all trajectory before request motion, set to true..
-//  */
-// void KinovaComm2::setCartesianPosition(const KinovaPose &pose, int timeout, bool push)
-// {
-//     boost::recursive_mutex::scoped_lock lock(api_mutex_);
+/**
+ * @brief Sends a cartesian coordinate trajectory to the Kinova arm.
+ * This function sends trajectory point(Cartesian) that will be added in the robotical arm's FIFO. Waits until the arm has stopped moving before releasing control of the API. sendBasicTrajectory() is called in api to complete the motion.
+ * In KinovaPose, orientation is expressed in Euler-XYZ convention (Rot=Rx*Ry*Rz). However, in ROS by default using Euler-ZYX. tf::Matrix3x3 EulerYPR = Rz(tz)*Ry(ty)*Rx(tx)
+ * @param pose target pose of robot [X,Y,Z, ThetaX, ThetaY, ThetaZ], unit in meter and radians.
+ * @param timeout default 0.0, not used.
+ * @param push default false, does not erase previous trajectory point before new motion. If you want to erase all trajectory before request motion, set to true..
+ */
+void KinovaComm2::setCartesianPosition(const KinovaPose &pose, int /*timeout*/, bool push)
+{
+    boost::recursive_mutex::scoped_lock lock(api_mutex_);
 
-//     if (isStopped())
-//     {
-//         ROS_WARN_STREAM("In class [" << typeid(*this).name() << "], function ["<< __FUNCTION__ << "]: The pose could not be set because the arm is stopped" << std::endl);
-//         return;
-//     }
+    if (isStopped())
+    {
+        // ROS_WARN_STREAM("In class [" << typeid(*this).name() << "], function ["<< __FUNCTION__ << "]: The pose could not be set because the arm is stopped" << std::endl);
+        RCLCPP_WARN(node_->get_logger(), "The pose could not be set because the arm is stopped");
+        return;
+    }
 
-//     int result = NO_ERROR_KINOVA;
-//     TrajectoryPoint kinova_pose;
-//     kinova_pose.InitStruct();
-//     memset(&kinova_pose, 0, sizeof(kinova_pose));  // zero structure
+    int result = NO_ERROR_KINOVA;
+    TrajectoryPoint kinova_pose;
+    kinova_pose.InitStruct();
+    memset(&kinova_pose, 0, sizeof(kinova_pose));  // zero structure
 
-//     if (push)
-//     {
-//         result = kinova_api_.eraseAllTrajectories();
-//         if (result != NO_ERROR_KINOVA)
-//         {
-//             throw KinovaCommException("Could not erase trajectories", result);
-//         }
-//     }
+    if (push)
+    {
+        result = kinova_api_.eraseAllTrajectories();
+        if (result != NO_ERROR_KINOVA)
+        {
+            throw KinovaCommException("Could not erase trajectories", result);
+        }
+    }
 
-//     //startAPI();
+    //startAPI();
 
-//     result = kinova_api_.setCartesianControl();
-//     if (result != NO_ERROR_KINOVA)
-//     {
-//         throw KinovaCommException("Could not set Cartesian control", result);
-//     }
+    result = kinova_api_.setCartesianControl();
+    if (result != NO_ERROR_KINOVA)
+    {
+        throw KinovaCommException("Could not set Cartesian control", result);
+    }
 
-//     kinova_pose.Position.Delay = 0.0;
-//     kinova_pose.Position.Type = CARTESIAN_POSITION;
-// //    kinova_pose.Position.HandMode = HAND_NOMOVEMENT;
-//     kinova_pose.Position.CartesianPosition = pose;
+    kinova_pose.Position.Delay = 0.0;
+    kinova_pose.Position.Type = CARTESIAN_POSITION;
+//    kinova_pose.Position.HandMode = HAND_NOMOVEMENT;
+    kinova_pose.Position.CartesianPosition = pose;
 
-//     result = kinova_api_.sendBasicTrajectory(kinova_pose);
-//     if (result != NO_ERROR_KINOVA)
-//     {
-//         throw KinovaCommException("Could not send basic trajectory", result);
-//     }
-// }
+    result = kinova_api_.sendBasicTrajectory(kinova_pose);
+    if (result != NO_ERROR_KINOVA)
+    {
+        throw KinovaCommException("Could not send basic trajectory", result);
+    }
+}
 
 
 /**
@@ -1346,24 +1348,24 @@ void KinovaComm2::setCartesianVelocities(const CartesianInfo &velocities)
 // }
 
 
-// /**
-//  * @brief This function returns the cartesian wrench at the robotical arm's end effector.
-//  * @param cart_force A structure that contains the wrench vector at the end effector. Unit in N and N * m.
-//  */
-// void KinovaComm2::getCartesianForce(KinovaPose &cart_force)
-// {
-//     boost::recursive_mutex::scoped_lock lock(api_mutex_);
-//     CartesianPosition kinova_cartesian_force;
-//     memset(&kinova_cartesian_force, 0, sizeof(kinova_cartesian_force));  // zero structure
+/**
+ * @brief This function returns the cartesian wrench at the robotical arm's end effector.
+ * @param cart_force A structure that contains the wrench vector at the end effector. Unit in N and N * m.
+ */
+void KinovaComm2::getCartesianForce(KinovaPose &cart_force)
+{
+    boost::recursive_mutex::scoped_lock lock(api_mutex_);
+    CartesianPosition kinova_cartesian_force;
+    memset(&kinova_cartesian_force, 0, sizeof(kinova_cartesian_force));  // zero structure
 
-//     int result = kinova_api_.getCartesianForce(kinova_cartesian_force);
-//     if (result != NO_ERROR_KINOVA)
-//     {
-//         throw KinovaCommException("Could not get the Cartesian force", result);
-//     }
+    int result = kinova_api_.getCartesianForce(kinova_cartesian_force);
+    if (result != NO_ERROR_KINOVA)
+    {
+        throw KinovaCommException("Could not get the Cartesian force", result);
+    }
 
-//     cart_force = KinovaPose(kinova_cartesian_force.Coordinates);
-// }
+    cart_force = KinovaPose(kinova_cartesian_force.Coordinates);
+}
 
 
 // /**
@@ -1447,18 +1449,18 @@ void KinovaComm2::getGlobalTrajectoryInfo(TrajectoryFIFO &trajectoryFIFO)
 }
 
 
-// /**
-//  * @brief This function erases all the trajectories inside the robotical arm's FIFO. All trajectory will be cleared including angular, cartesian and fingers.
-//  */
-// void KinovaComm2::eraseAllTrajectories()
-// {
-//     boost::recursive_mutex::scoped_lock lock(api_mutex_);
-//     int result = kinova_api_.eraseAllTrajectories();
-//     if (result != NO_ERROR_KINOVA)
-//     {
-//         throw KinovaCommException("Could not errase all trajectories.", result);
-//     }
-// }
+/**
+ * @brief This function erases all the trajectories inside the robotical arm's FIFO. All trajectory will be cleared including angular, cartesian and fingers.
+ */
+void KinovaComm2::eraseAllTrajectories()
+{
+    boost::recursive_mutex::scoped_lock lock(api_mutex_);
+    int result = kinova_api_.eraseAllTrajectories();
+    if (result != NO_ERROR_KINOVA)
+    {
+        throw KinovaCommException("Could not erase all trajectories.", result);
+    }
+}
 
 
 // MARK: Fingers
@@ -1670,21 +1672,21 @@ void KinovaComm2::initFingers(void)
 // }
 
 // MARK: 7 DoF
-// int KinovaComm2::SetRedundantJointNullSpaceMotion(int state)
-// {
-//     RCLCPP_INFO(node_->get_logger(), "Setting null space mode to %d",state);
-//     int result;
-//     if (state)
-//         result = kinova_api_.StartRedundantJointNullSpaceMotion();
-//     else
-//         result = kinova_api_.StopRedundantJointNullSpaceMotion();
-//     if (result != NO_ERROR_KINOVA)
-//     {
-//         throw KinovaCommException("Could not set redundant joint null space mode", result);
-//     }
+int KinovaComm2::SetRedundantJointNullSpaceMotion(int state)
+{
+    RCLCPP_INFO(node_->get_logger(), "Setting null space mode to %d",state);
+    int result;
+    if (state)
+        result = kinova_api_.StartRedundantJointNullSpaceMotion();
+    else
+        result = kinova_api_.StopRedundantJointNullSpaceMotion();
+    if (result != NO_ERROR_KINOVA)
+    {
+        throw KinovaCommException("Could not set redundant joint null space mode", result);
+    }
 
-//     return 1;
-// }
+    return 1;
+}
 
 
 // int KinovaComm2::SetRedundancyResolutionToleastSquares(int state)
