@@ -53,6 +53,7 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
                     const std::string &kinova_robotName)
     : node_(node), kinova_comm_(kinova_comm2), kinova_robotType_(kinova_robotType), kinova_robotName_(kinova_robotName)
 {
+    RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] Initializing KinovaArm2");
     for (int i=0;i<COMMAND_SIZE;i++)
     {
       l_joint_torque_[i] = 0;
@@ -64,14 +65,14 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
 
     if (valid_kinovaRobotType(kinova_robotType_) == false)
     {
-        RCLCPP_WARN(node_->get_logger(), "Invalid kinova_robotType error! Obtained: %s.", kinova_robotType_.c_str());
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] Invalid kinova_robotType error! Obtained: %s.", kinova_robotType_.c_str());
         return;
     }
 
     tf_prefix_ = kinova_robotName_ + "_";
 
     // Maximum number of joints on Kinova-like robots:
-    RCLCPP_INFO(node_->get_logger(), "(kinova_arm2) Setting up the arm robot type");
+    RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Setting up the arm robot type");
     robot_category_ = kinova_robotType_[0];
     robot_category_version_ = kinova_robotType_[1]-'0';
     wrist_type_ = kinova_robotType_[2];
@@ -101,7 +102,7 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     }
     else
     {
-        RCLCPP_WARN(node_->get_logger(), "Invalid robot category error! Obtained: %c.", robot_category_);
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] Invalid robot category error! Obtained: %c.", robot_category_);
         return;
     }
 
@@ -133,7 +134,7 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     /* Set up Services */
     using namespace std::placeholders;
 
-    RCLCPP_INFO(node_->get_logger(), "(kinova_arm2) Setting up services");
+    RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Setting up services");
 
     stop_service_ = node_->create_service<kinova_msgs::srv::Stop>("in/stop", std::bind(&KinovaArm2::stopServiceCallback, this, _1, _2));
 
@@ -167,7 +168,7 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     //          &KinovaArm2::setTorqueControlParametersService,this);
 
     /* Set up Publishers */
-    RCLCPP_INFO(node_->get_logger(), "(kinova_arm2) Setting up publishers");
+    RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Setting up publishers");
     joint_angles_publisher_ = node_->create_publisher<kinova_msgs::msg::JointAngles>
             ("out/joint_angles", 2);
     joint_torque_publisher_ = node_->create_publisher<kinova_msgs::msg::JointAngles>
@@ -208,7 +209,6 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     // node_.param("convert_joint_velocities", convert_joint_velocities_, true);
 
     
-    RCLCPP_INFO(node_->get_logger(), "(kinova_arm2) TIMER");
     // status_timer_ = node_.createTimer(ros::Duration(status_interval_seconds_),
     //                                        &KinovaArm2::statusTimer, this);
 
@@ -216,7 +216,7 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
       std::chrono::milliseconds(static_cast<int>(status_interval_seconds_ * 1000)), std::bind(&KinovaArm2::statusTimer, this));
 
 
-    RCLCPP_INFO(node_->get_logger(), "The arm is ready to use.");
+    RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] The arm is ready to use.");
 }
 
 
@@ -355,7 +355,7 @@ void KinovaArm2::stopServiceCallback(const std::shared_ptr<kinova_msgs::srv::Sto
 {
     kinova_comm_->stopAPI();
     res->stop_result = "Arm stopped";
-    RCLCPP_INFO(node_->get_logger(), "Arm stop requested");
+    RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Arm stop requested");
 }
 
 
@@ -368,7 +368,7 @@ void KinovaArm2::startServiceCallback(const std::shared_ptr<kinova_msgs::srv::St
 {
     kinova_comm_->startAPI();
     res->start_result = "Arm started";
-    RCLCPP_DEBUG(node_->get_logger(), "Arm start requested");
+    RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Arm start requested");
 }
 
 
@@ -387,7 +387,7 @@ void KinovaArm2::addCartesianPoseToTrajectory(const std::shared_ptr<kinova_msgs:
 
 void KinovaArm2::clearTrajectoriesServiceCallback(const std::shared_ptr<kinova_msgs::srv::ClearTrajectories::Request> /*request*/, std::shared_ptr<kinova_msgs::srv::ClearTrajectories::Response> /*res*/)
 {
-    RCLCPP_DEBUG(node_->get_logger(), "Clearing all trajectories");
+    RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Clearing all trajectories");
     kinova_comm_->eraseAllTrajectories();
 }
 
@@ -449,14 +449,14 @@ void KinovaArm2::clearTrajectoriesServiceCallback(const std::shared_ptr<kinova_m
 
 void KinovaArm2::setJointTorquesToZeroCallback(const std::shared_ptr<kinova_msgs::srv::ZeroTorques::Request> /*request*/, std::shared_ptr<kinova_msgs::srv::ZeroTorques::Response> /*res*/)
 {
-    RCLCPP_DEBUG(node_->get_logger(), "Setting joint torques to zero");
+    RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Setting joint torques to zero");
     kinova_comm_->setZeroTorque();
 }
 
 
 void KinovaArm2::runCOMParameterEstimationCallback(const std::shared_ptr<kinova_msgs::srv::RunCOMParametersEstimation::Request> /*request*/, std::shared_ptr<kinova_msgs::srv::RunCOMParametersEstimation::Response> /*res*/)
 {
-    RCLCPP_DEBUG(node_->get_logger(), "Running COM parameter estimation");
+    RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Running COM parameter estimation");
     kinova_comm_->runCOMParameterEstimation(robot_type_);
 }
 
@@ -747,7 +747,7 @@ void KinovaArm2::publishFingerPosition(void)
 
 void KinovaArm2::statusTimer()
 {
-    RCLCPP_INFO(node_->get_logger(), "Status timer callback");
+    RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Status timer callback");
     publishJointAngles();
     publishToolPosition();
     publishToolWrench();

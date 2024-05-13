@@ -30,11 +30,18 @@ public:
         this->declare_parameter("status_interval_seconds", 0.1);
         
         
-        kinova_robot_name_ = this->get_parameter("kinova_robot_name").as_string();
         kinova_robot_type_ = this->get_parameter("kinova_robot_type").as_string();
+        kinova_robot_name_ = this->get_parameter("kinova_robot_name").as_string();
+        connection_type_ = this->get_parameter("connection_type").as_string();
+        serial_number_ = this->get_parameter("serial_number").as_string();
+        status_interval_seconds_ = this->get_parameter("status_interval_seconds").as_double();
 
-        RCLCPP_INFO(this->get_logger(), "kinova_robot_type is %s.", kinova_robot_type_.c_str());
-        RCLCPP_INFO(this->get_logger(), "kinova_robot_name is %s.", kinova_robot_name_.c_str());
+        RCLCPP_INFO(this->get_logger(), "kinova_arm_driver2 parameters:");
+        RCLCPP_INFO(this->get_logger(), "\tkinova_robot_type is %s.", kinova_robot_type_.c_str());
+        RCLCPP_INFO(this->get_logger(), "\tkinova_robot_name is %s.", kinova_robot_name_.c_str());
+        RCLCPP_INFO(this->get_logger(), "\tconnection_type is %s.", connection_type_.c_str());
+        RCLCPP_INFO(this->get_logger(), "\tserial_number is %s.", serial_number_.c_str());
+        RCLCPP_INFO(this->get_logger(), "\tstatus_interval_seconds is %f.", status_interval_seconds_);
 
         // try
         // {
@@ -77,6 +84,9 @@ private:
     // params
     std::string kinova_robot_name_;
     std::string kinova_robot_type_;
+    std::string connection_type_;
+    std::string serial_number_;
+    double status_interval_seconds_;
     
     // Classes
     std::shared_ptr<kinova::KinovaComm2> comm_;
@@ -90,7 +100,7 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
   
   auto driver_node = std::make_shared<KinovaArmDriver2>();
-  driver_node->init_driver();
+//   driver_node->init_driver();
   
   rclcpp::spin(driver_node);
   rclcpp::shutdown();

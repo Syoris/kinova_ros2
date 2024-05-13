@@ -14,7 +14,7 @@ KinovaComm2::KinovaComm2(rclcpp::Node::SharedPtr node,
                    const std::string &kinova_robotType)
     :node_(node), api_mutex_(api_mutex), is_software_stop_(false)
 {
-    RCLCPP_INFO(node_->get_logger(), "(kinova_comm2) KinovaComm2 constructor");
+    RCLCPP_INFO(node_->get_logger(), "[kinova_comm2] KinovaComm2 constructor");
 
     boost::recursive_mutex::scoped_lock lock(api_mutex_);
 
@@ -26,7 +26,7 @@ KinovaComm2::KinovaComm2(rclcpp::Node::SharedPtr node,
     if (api_type == "USB")
       kinova_api_.initializeKinovaAPIFunctions(USB);
     else{
-      RCLCPP_ERROR(node_->get_logger(), "Ethernet not supported");
+      RCLCPP_ERROR(node_->get_logger(), "[kinova_arm2] Ethernet not supported");
     //   kinova_api_.initializeKinovaAPIFunctions(ETHERNET);
     }
 
@@ -45,7 +45,7 @@ KinovaComm2::KinovaComm2(rclcpp::Node::SharedPtr node,
     std::string cmd_layer_str = std::to_string(COMMAND_LAYER_VERSION);
     const char* cmd_layer_cstr = cmd_layer_str.c_str();
     std::string version_str = cmd_layer_cstr[0] + std::string(".") + cmd_layer_cstr[1] + cmd_layer_cstr[2] + std::string(".") + cmd_layer_cstr[3] + cmd_layer_cstr[4];
-    RCLCPP_INFO(node_->get_logger(), "(kinova_comm2) Initializing Kinova %s API (header version: %s, library version: %d.%d.%d)",
+    RCLCPP_INFO(node_->get_logger(), "[kinova_comm2] Initializing Kinova %s API (header version: %s, library version: %d.%d.%d)",
                 api_type.c_str(), version_str.c_str(), api_version[0], api_version[1], api_version[2]);
 
     
@@ -55,7 +55,7 @@ KinovaComm2::KinovaComm2(rclcpp::Node::SharedPtr node,
     }
     else{
         // result =kinova_api_.initEthernetAPI(ethernet_settings);
-        RCLCPP_ERROR(node_->get_logger(), "Ethernet not supported");
+        RCLCPP_ERROR(node_->get_logger(), "[kinova_arm2] Ethernet not supported");
     }
 
     if (result != NO_ERROR_KINOVA)
@@ -113,7 +113,7 @@ KinovaComm2::KinovaComm2(rclcpp::Node::SharedPtr node,
 
     if (!found_arm)
     {
-        RCLCPP_ERROR(node_->get_logger(), "Could not find the specified arm (serial: %s) among the %d attached devices",
+        RCLCPP_ERROR(node_->get_logger(), "[kinova_arm2] Could not find the specified arm (serial: %s) among the %d attached devices",
               serial_number.c_str(), devices_count);
         throw KinovaCommException("Could not find the specified arm", 0);
     }
@@ -124,14 +124,14 @@ KinovaComm2::KinovaComm2(rclcpp::Node::SharedPtr node,
 
     // On a cold boot the arm may not respond to commands from the API right away.
     // This kick-starts the Control API so that it's ready to go.
-    RCLCPP_INFO(node_->get_logger(), "(kinova_comm2) Starting the Control API");
+    RCLCPP_INFO(node_->get_logger(), "[kinova_comm2] Starting the Control API");
     startAPI();
     stopAPI();
     startAPI();
 
     //Set robot to use manual COM parameters
     bool use_estimated_COM = node_->get_parameter_or("torque_parameters/use_estimated_COM_parameters", true);
-    RCLCPP_INFO(node_->get_logger(), "(kinova_comm2) Setting COM params. Using estimated COM: %s", use_estimated_COM ? "true" : "false");
+    RCLCPP_INFO(node_->get_logger(), "[kinova_comm2] Setting COM params. Using estimated COM: %s", use_estimated_COM ? "true" : "false");
     if (use_estimated_COM == true)
         kinova_api_.setGravityType(OPTIMAL);
     else
@@ -152,7 +152,7 @@ KinovaComm2::KinovaComm2(rclcpp::Node::SharedPtr node,
     }
     else
     {
-        RCLCPP_WARN(node_->get_logger(), "Movement on connection to the arm has been suppressed on initialization. You may have to home the arm (through the home service) before movement is possible");
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] Movement on connection to the arm has been suppressed on initialization. You may have to home the arm (through the home service) before movement is possible");
     }
 }
 
@@ -430,13 +430,13 @@ void KinovaComm2::homeArm(void)
 
     if (isStopped())
     {
-        RCLCPP_INFO(node_->get_logger(), "Arm is stopped, cannot home");
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] Arm is stopped, cannot home");
         return;
     }
     else if (isHomed())
     {
 
-        RCLCPP_INFO(node_->get_logger(), "Arm is already in \"home\" position");
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] Arm is already in \"home\" position");
         return;
     }
 
@@ -444,33 +444,8 @@ void KinovaComm2::homeArm(void)
     rclcpp::sleep_for(std::chrono::seconds(1));
     startAPI();
 
-    RCLCPP_INFO(node_->get_logger(), "Homing the arm");
+    RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Homing the arm");
     kinova_api_.moveHome();
-
-    /*JoystickCommand mycommand;
-    mycommand.InitStruct();
-    // In api mapping(observing with Jacosoft), home button is ButtonValue[2].
-    mycommand.ButtonValue[2] = 1;
-    for(int i = 0; i<2000; i++)
-    {
-        kinova_api_.sendJoystickCommand(mycommand);
-        usleep(5000);
-
-        // if (myhome.isCloseToOther(KinovaAngles(currentAngles.Actuators), angle_tolerance))
-        if(isHomed())
-        {
-            RCLCPP_INFO(node_->get_logger(), "Arm is in \"home\" position");
-            // release home button.
-            mycommand.ButtonValue[2] = 0;
-            kinova_api_.sendJoystickCommand(mycommand);
-            return;
-        }
-    }
-
-    mycommand.ButtonValue[2] = 0;
-    kinova_api_.sendJoystickCommand(mycommand);
-    ROS_WARN("Homing arm timer out! If the arm is not in home position yet, please re-run home arm.");*/
-
 }
 
 
@@ -550,7 +525,7 @@ void KinovaComm2::setAngularControl()
     getGlobalTrajectoryInfo(trajectory_fifo);
     if(trajectory_fifo.TrajectoryCount > 0)
     {
-        RCLCPP_WARN(node_->get_logger(), "Current tranjectory count is %d, Please wait the trajectory to finish to swich to Angular control.", trajectory_fifo.TrajectoryCount);
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] Current tranjectory count is %d, Please wait the trajectory to finish to swich to Angular control.", trajectory_fifo.TrajectoryCount);
         return;
     }
     int result = kinova_api_.setAngularControl();
@@ -612,7 +587,7 @@ void KinovaComm2::setJointAngles(const KinovaAngles &angles, double speedJoint12
 
     if (isStopped())
     {
-        RCLCPP_WARN(node_->get_logger(), "The angles could not be set because the arm is stopped");
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] The angles could not be set because the arm is stopped");
 
         // ROS_WARN_STREAM("In class [" << typeid(*this).name() << "], function ["<< __FUNCTION__ << "]: The angles could not be set because the arm is stopped" << std::endl);
         return;
@@ -696,7 +671,7 @@ void KinovaComm2::setJointVelocities(const AngularInfo &joint_vel)
 
     if (isStopped())
     {
-        RCLCPP_INFO(node_->get_logger(), "The velocities could not be set because the arm is stopped");
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] The velocities could not be set because the arm is stopped");
         return;
     }
 
@@ -761,7 +736,7 @@ void KinovaComm2::setJointTorques(float joint_torque[])
 
     if (isStopped())
     {
-        RCLCPP_INFO(node_->get_logger(), "The joint torques could not be set because the arm is stopped");
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] The joint torques could not be set because the arm is stopped");
         return;
     }
 
@@ -800,12 +775,12 @@ void KinovaComm2::getJointCurrent(AngularPosition &anguler_current)
  */
 void KinovaComm2::printAngles(const KinovaAngles &angles)
 {
-    RCLCPP_INFO(node_->get_logger(), "Joint angles (deg) -- J1: %f, J2: %f J3: %f, J4: %f, J5: %f, J6: %f, J7: %f \n",
+    RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] Joint angles (deg) -- J1: %f, J2: %f J3: %f, J4: %f, J5: %f, J6: %f, J7: %f \n",
              angles.Actuator1, angles.Actuator2, angles.Actuator3,
              angles.Actuator4, angles.Actuator5, angles.Actuator6,
              angles.Actuator7);
 
-    RCLCPP_INFO(node_->get_logger(), "Joint angles (rad) -- J1: %f, J2: %f J3: %f, J4: %f, J5: %f, J6: %f, J7: %f \n",
+    RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] Joint angles (rad) -- J1: %f, J2: %f J3: %f, J4: %f, J5: %f, J6: %f, J7: %f \n",
              angles.Actuator1/180.0*M_PI, angles.Actuator2/180.0*M_PI, angles.Actuator3/180.0*M_PI,
              angles.Actuator4/180.0*M_PI, angles.Actuator5/180.0*M_PI, angles.Actuator6/180.0*M_PI,
              angles.Actuator7/180.0*M_PI);
@@ -850,7 +825,7 @@ void KinovaComm2::setZeroTorque()
         throw KinovaCommException("Could not set zero torques", result);
     }
     // ROS_WARN("Torques for all joints set to zero");
-    RCLCPP_WARN(node_->get_logger(), "Torques for all joints set to zero");
+    RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] Torques for all joints set to zero");
 }
 
 
@@ -979,13 +954,13 @@ int KinovaComm2::runCOMParameterEstimation(ROBOT_TYPE type)
     int result;
     if(type == SPHERICAL_7DOF_SERVICE)
     {
-        RCLCPP_INFO(node_->get_logger(), "Running 7 dof robot COM estimation sequence");
+        RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] Running 7 dof robot COM estimation sequence");
         result = kinova_api_.runGravityZEstimationSequence7DOF(type,COMparams);
     }
     else
     {
         double params[OPTIMAL_Z_PARAM_SIZE];
-        RCLCPP_INFO(node_->get_logger(), "Running COM estimation sequence");
+        RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] Running COM estimation sequence");
         result = kinova_api_.runGravityZEstimationSequence(type,params);
         for (int i=0;i<OPTIMAL_Z_PARAM_SIZE;i++)
             COMparams[i] = (float)params[i];
@@ -1133,7 +1108,7 @@ void KinovaComm2::setCartesianPosition(const KinovaPose &pose, int /*timeout*/, 
     if (isStopped())
     {
         // ROS_WARN_STREAM("In class [" << typeid(*this).name() << "], function ["<< __FUNCTION__ << "]: The pose could not be set because the arm is stopped" << std::endl);
-        RCLCPP_WARN(node_->get_logger(), "The pose could not be set because the arm is stopped");
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] The pose could not be set because the arm is stopped");
         return;
     }
 
@@ -1184,7 +1159,7 @@ void KinovaComm2::setCartesianVelocities(const CartesianInfo &velocities)
 
     if (isStopped())
     {
-        RCLCPP_INFO(node_->get_logger(), "The cartesian velocities could not be set because the arm is stopped");
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] The cartesian velocities could not be set because the arm is stopped");
         kinova_api_.eraseAllTrajectories();
         return;
     }
@@ -1407,7 +1382,7 @@ void KinovaComm2::getCartesianForce(KinovaPose &cart_force)
  */
 void KinovaComm2::printPosition(const KinovaPose &position)
 {
-    RCLCPP_INFO(node_->get_logger(), "Arm position\n"
+    RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] Arm position\n"
              "\tposition (m) -- x: %f, y: %f z: %f\n"
              "\trotation (rad) -- theta_x: %f, theta_y: %f, theta_z: %f",
              position.X, position.Y, position.Z,
@@ -1605,7 +1580,7 @@ void KinovaComm2::getFingerPositions(FingerAngles &fingers)
  */
 void KinovaComm2::initFingers(void)
 {
-    RCLCPP_INFO(node_->get_logger(), "Initializing fingers...this will take a few seconds and the fingers should open completely");
+    RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] Initializing fingers...this will take a few seconds and the fingers should open completely");
     boost::recursive_mutex::scoped_lock lock(api_mutex_);
     int result = kinova_api_.initFingers();
     if (result != NO_ERROR_KINOVA)
@@ -1674,7 +1649,7 @@ void KinovaComm2::initFingers(void)
 // MARK: 7 DoF
 int KinovaComm2::SetRedundantJointNullSpaceMotion(int state)
 {
-    RCLCPP_INFO(node_->get_logger(), "Setting null space mode to %d",state);
+    RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] Setting null space mode to %d",state);
     int result;
     if (state)
         result = kinova_api_.StartRedundantJointNullSpaceMotion();
