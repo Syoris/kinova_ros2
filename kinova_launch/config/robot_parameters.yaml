@@ -41,5 +41,5 @@
     kinova_robot_name: j2s7s300
     connection_type: USB
     serial_number: not_set
-    status_interval_seconds: 0.01
+    status_interval_seconds: 0.1
     

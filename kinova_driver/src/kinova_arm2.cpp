@@ -134,6 +134,7 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     /* Set up Services */
     using namespace std::placeholders;
 
+    // MARK: Services
     RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Setting up services");
 
     stop_service_ = node_->create_service<kinova_msgs::srv::Stop>("in/stop", std::bind(&KinovaArm2::stopServiceCallback, this, _1, _2));
@@ -161,13 +162,14 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     //     &KinovaArm2::setEndEffectorOffsetCallback, this);
 
     // start_null_space_service_ = node_.advertiseService("in/set_null_space_mode_state", &KinovaArm2::activateNullSpaceModeCallback, this);
+    
     // set_torque_control_mode_service_ = node_.advertiseService("in/set_torque_control_mode", &KinovaArm2::setTorqueControlModeService, this);
 
     // set_torque_control_parameters_service_ = node_.advertiseService
     //         ("in/set_torque_control_parameters",
     //          &KinovaArm2::setTorqueControlParametersService,this);
 
-    /* Set up Publishers */
+    // Set up Publishers MARK: PUBLISHERS
     RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Setting up publishers");
     joint_angles_publisher_ = node_->create_publisher<kinova_msgs::msg::JointAngles>
             ("out/joint_angles", 2);
@@ -189,6 +191,7 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     cartesian_command_publisher_ = node_->create_publisher<kinova_msgs::msg::KinovaPose>("out/cartesian_command", 2);
 
     /* Set up Subscribers*/
+    // MARK: SUBSCRIBERS
     joint_velocity_subscriber_ = node_->create_subscription<kinova_msgs::msg::JointVelocity>("in/joint_velocity", 1, std::bind(&KinovaArm2::jointVelocitySubscriberCallback, this, _1));
 
     cartesian_velocity_subscriber_ = node_->create_subscription<kinova_msgs::msg::PoseVelocity>("in/cartesian_velocity", 1, std::bind(&KinovaArm2::cartesianVelocitySubscriberCallback, this, _1));                                    
