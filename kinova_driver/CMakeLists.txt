@@ -130,7 +130,7 @@ endif()
 ##### AMENT PACKAGE #####
 ament_export_dependencies(
   # geometry_msgs 
-  # kinova_msgs
+  kinova_msgs
   rclcpp
   # rospy
   # sensor_msgs

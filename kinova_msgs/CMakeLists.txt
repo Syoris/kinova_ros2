@@ -24,8 +24,7 @@ find_package(rosidl_default_generators REQUIRED)
 #   DEPENDENCIES geometry_msgs # Add packages that above messages depend on, in this case geometry_msgs for Sphere.msg
 # )
 
-rosidl_generate_interfaces(${PROJECT_NAME}
-  # --- Messages ---
+set(msg_files
   "msg/FingerPosition.msg"
   "msg/JointAngles.msg"
   "msg/JointVelocity.msg"
@@ -35,7 +34,9 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/PoseVelocityWithFingers.msg"
   "msg/PoseVelocityWithFingerVelocity.msg"
   "msg/CartesianForce.msg"
-  # --- Services ---
+)
+
+set(srv_files
   "srv/Start.srv"
   "srv/Stop.srv"
   "srv/HomeArm.srv"
@@ -48,11 +49,19 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ZeroTorques.srv"
   "srv/AddPoseToCartesianTrajectory.srv"
   "srv/RunCOMParametersEstimation.srv"
-  # --- Actions ---
+)
+
+set(action_files
   "action/ArmJointAngles.action"
   "action/ArmPose.action"
   "action/ArmKinovaPose.action"
   "action/SetFingersPosition.action"
+)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  ${msg_files}
+  ${srv_files}
+  # ${action_files}
   DEPENDENCIES geometry_msgs # Add packages that above messages depend on, in this case geometry_msgs for Sphere.msg
 )
 
