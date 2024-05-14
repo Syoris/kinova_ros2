@@ -162,7 +162,7 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     //     &KinovaArm2::setEndEffectorOffsetCallback, this);
 
     // start_null_space_service_ = node_.advertiseService("in/set_null_space_mode_state", &KinovaArm2::activateNullSpaceModeCallback, this);
-    
+
     // set_torque_control_mode_service_ = node_.advertiseService("in/set_torque_control_mode", &KinovaArm2::setTorqueControlModeService, this);
 
     // set_torque_control_parameters_service_ = node_.advertiseService
@@ -220,6 +220,7 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     status_timer_ = node_->create_wall_timer(
       std::chrono::milliseconds(static_cast<int>(status_interval_seconds_ * 1000)), std::bind(&KinovaArm2::statusTimer, this));
 
+    inAngularControlMode = false;
 
     RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] The arm is ready to use.");
 }
@@ -300,7 +301,14 @@ void KinovaArm2::activateNullSpaceModeCallback(const std::shared_ptr<kinova_msgs
 
 
 void KinovaArm2::jointVelocitySubscriberCallback(const kinova_msgs::msg::JointVelocity& joint_vel)
-{
+{   
+    RCLCPP_INFO(node_->get_logger(), "[kinova_arm2] Joint velocity command received");
+
+    // if (!inAngularControlMode){
+    //     kinova_comm_->eraseAllTrajectories();
+    //     kinova_comm_->setAngularControl();
+    // }
+
     if (!kinova_comm_->isStopped())
     {
         joint_velocities_.Actuator1 = joint_vel.joint1;
@@ -312,6 +320,9 @@ void KinovaArm2::jointVelocitySubscriberCallback(const kinova_msgs::msg::JointVe
         joint_velocities_.Actuator7 = joint_vel.joint7;
 
         kinova_comm_->setJointVelocities(joint_velocities_);
+    }
+    else{
+        RCLCPP_WARN(node_->get_logger(), "[kinova_arm2] Arm is stopped. Ignoring joint velocity command.");
     }
 }
 

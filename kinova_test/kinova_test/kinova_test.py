@@ -1,4 +1,4 @@
-import sys
+from kinova_msgs.msg import JointAngles, JointVelocity, PoseVelocity
 
 from kinova_msgs.srv import (
     Start,
@@ -12,12 +12,19 @@ from kinova_msgs.srv import (
 import rclpy
 from rclpy.node import Node
 
+import time
+
 
 class KinovaTest(Node):
     def __init__(self):
         super().__init__("kinova_test")
 
+        self._is_homed = False
+
         self._init_clients()
+        self._init_publishers()
+
+        self.timer = self.create_timer(0.01, self.timer_callback)
 
         self.get_logger().info("KinovaTest node has been initialized.")
 
@@ -94,34 +101,102 @@ class KinovaTest(Node):
         )
 
     def start_arm(self):
+        self.get_logger().info("Starting the arm...")
+
         self.future = self.start_cli.call_async(self.start_cli_req)
         rclpy.spin_until_future_complete(self, self.future)
-        return self.future.result()
+
+        res = self.future.result()
+        self.get_logger().info(f"Result: {res.start_result}")
+        return res
 
     def stop_arm(self):
         self.get_logger().info("Stopping the arm...")
+
         self.future = self.stop_cli.call_async(self.stop_cli_req)
         rclpy.spin_until_future_complete(self, self.future)
 
         res = self.future.result()
         self.get_logger().info(f"Result: {res.stop_result}")
 
-        return self.future.result()
+        return res
 
     def home_arm(self):
         self.get_logger().info("Homing the arm...")
-        try:
-            self.future = self.home_arm_cli.call_async(self.home_arm_cli_req)
-            rclpy.spin_until_future_complete(self, self.future)
-            res = self.future.result()
-            self.get_logger().info(f"Result: {res.homearm_result}")
-            return res
 
-        except KeyboardInterrupt:
-            self.future.cancel()
-            self.get_logger().info("Service call cancelled due to keyboard interrupt.")
+        self.future = self.home_arm_cli.call_async(self.home_arm_cli_req)
+        rclpy.spin_until_future_complete(self, self.future)
 
-            self.stop_arm()
+        res = self.future.result()
+
+        self.get_logger().info(f"Result: {res.homearm_result}")
+        self._is_homed = True
+
+        return res
+
+    def run_com_parameters_estimation(self):
+        self.get_logger().info("Running COM parameters estimation...")
+
+        self.future = self.run_com_parameters_estimation_cli.call_async(
+            self.run_com_parameters_estimation_cli_req
+        )
+        rclpy.spin_until_future_complete(self, self.future)
+
+        res = self.future.result()
+        self.get_logger().info(f"Result: {res.run_COM_parameters_estimation_result}")
+
+        return res
+
+    # ---------------- PUBLISHERS ----------------
+    # MARK: PUBLISHERS
+    def _init_publishers(self):
+        self.get_logger().info("Creating publishers...")
+
+        # Joint vels publisher
+        self.joint_vels_pub_ = self.create_publisher(
+            JointVelocity, "/arm/in/joint_velocity", 5
+        )
+
+        # Cartesian pose publisher
+        self.cartesian_pose_vels_pub_ = self.create_publisher(
+            PoseVelocity, "/arm/in/cartesian_velocity", 5
+        )
+
+    def publish_joint_vels(self, joint_vels):
+        joint_vels = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+
+        msg = JointVelocity()
+        msg.joint1 = joint_vels[0]
+        msg.joint2 = joint_vels[1]
+        msg.joint3 = joint_vels[2]
+        msg.joint4 = joint_vels[3]
+        msg.joint5 = joint_vels[4]
+        msg.joint6 = joint_vels[5]
+        msg.joint7 = joint_vels[6]
+
+        self.joint_vels_pub_.publish(msg)
+
+    def publish_pose_vels(self, pose_vels):
+        pose_vels = [5.0, 0.0, 0.0, 0.0, 0.0, 5.0]
+
+        msg = PoseVelocity()
+
+        msg.twist_linear_x = pose_vels[0]
+        msg.twist_linear_y = pose_vels[1]
+        msg.twist_linear_z = pose_vels[2]
+        msg.twist_angular_x = pose_vels[3]
+        msg.twist_angular_y = pose_vels[4]
+        msg.twist_angular_z = pose_vels[5]
+
+        self.cartesian_pose_vels_pub_.publish(msg)
+
+    def timer_callback(self):
+        if not self._is_homed:
+            return
+
+        self.get_logger().info("Timer callback")
+        # self.publish_pose_vels([])
+        self.publish_joint_vels([])
 
 
 def main():
@@ -129,17 +204,22 @@ def main():
 
     kinova_test = KinovaTest()
 
-    # # Start the arm
-    # response = kinova_test.start_arm()
-    # kinova_test.get_logger().info(f"Result: {response.start_result}")
+    # Start the arm
+    kinova_test.start_arm()
 
     # # Stop the arm
     # response = kinova_test.stop_arm()
 
     # Home the arm
     kinova_test.home_arm()
-    kinova_test.get_logger().info("Arm has been homed.")
+    time.sleep(1)
 
+    # Pusblish joint vels
+    # kinova_test.publish_joint_vels([])
+
+    rclpy.spin(kinova_test)
+
+    kinova_test.get_logger().info("Done, destroying node")
     kinova_test.destroy_node()
     rclpy.shutdown()
 

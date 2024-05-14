@@ -201,6 +201,8 @@ class KinovaArm2
     int active_robot_id_;
     std::vector<robot_info> robots_;
 
+    bool inAngularControlMode;
+
 };
 
 
