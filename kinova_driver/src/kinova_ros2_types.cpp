@@ -466,6 +466,22 @@ kinova_msgs::msg::JointAngles KinovaAngles::constructAnglesMsg()
     return angles;
 }
 
+/**
+ * @brief KinovaAngles::constructAnglesMsg
+ * @return kinova_msgs::JointAngles is used as messanges for topic in ROS, in degrees.
+ */
+kinova_msgs::msg::JointVelocity KinovaAngles::constructVelsMsg()
+{
+    kinova_msgs::msg::JointVelocity vels;
+    vels.joint1 = Actuator1;
+    vels.joint2 = Actuator2;
+    vels.joint3 = Actuator3;
+    vels.joint4 = Actuator4;
+    vels.joint5 = Actuator5;
+    vels.joint6 = Actuator6;
+    vels.joint7 = Actuator7;
+    return vels;
+}
 
 /**
  * @brief check all the joint values, to determine if current KinovaAngles reach "other"

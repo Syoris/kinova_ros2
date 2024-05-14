@@ -50,6 +50,7 @@
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/wrench.hpp>
 #include <kinova_msgs/msg/joint_angles.hpp>
+#include <kinova_msgs/msg/joint_velocity.hpp>
 #include <kinova_msgs/msg/finger_position.hpp>
 #include <kinova_msgs/msg/kinova_pose.hpp>
 // #include <tf/tf.h>
@@ -113,6 +114,7 @@ class KinovaAngles : public AngularInfo
     explicit KinovaAngles(const AngularInfo &angles);
 
     kinova_msgs::msg::JointAngles constructAnglesMsg();
+    kinova_msgs::msg::JointVelocity constructVelsMsg();
     bool isCloseToOther(const KinovaAngles &, float tolerance) const;
     void applyShortestAngleDistanceTo(KinovaAngles target_angle);
 };

@@ -171,6 +171,8 @@ KinovaArm2::KinovaArm2(rclcpp::Node::SharedPtr node,
     RCLCPP_DEBUG(node_->get_logger(), "[kinova_arm2] Setting up publishers");
     joint_angles_publisher_ = node_->create_publisher<kinova_msgs::msg::JointAngles>
             ("out/joint_angles", 2);
+    joint_vels_publisher_ = node_->create_publisher<kinova_msgs::msg::JointVelocity>
+            ("out/joint_vels", 2);            
     joint_torque_publisher_ = node_->create_publisher<kinova_msgs::msg::JointAngles>
             ("out/joint_torques", 2);
     joint_state_publisher_ = node_->create_publisher<sensor_msgs::msg::JointState>
@@ -563,11 +565,14 @@ void KinovaArm2::publishJointAngles(void)
     FingerAngles fingers;
     kinova_comm_->getFingerPositions(fingers);
 
-    // Query arm for current joint angles
+    // Joint angles
     KinovaAngles current_angles;
     kinova_comm_->getJointAngles(current_angles);
     kinova_msgs::msg::JointAngles kinova_angles = current_angles.constructAnglesMsg();
 
+    // Joint vels
+
+    // Joint commands
     AngularPosition joint_command;
     kinova_comm_->getAngularCommand(joint_command);
     kinova_msgs::msg::JointAngles joint_command_msg = KinovaAngles(joint_command.Actuators).constructAnglesMsg();
@@ -617,6 +622,8 @@ void KinovaArm2::publishJointAngles(void)
     // Joint velocities
     KinovaAngles current_vels;
     kinova_comm_->getJointVelocities(current_vels);
+    kinova_msgs::msg::JointVelocity kinova_vels = current_vels.constructVelsMsg();
+
     joint_state.velocity.resize(joint_total_number_);
     joint_state.velocity[0] = current_vels.Actuator1;
     joint_state.velocity[1] = current_vels.Actuator2;
@@ -680,6 +687,7 @@ void KinovaArm2::publishJointAngles(void)
     }
 
     joint_angles_publisher_->publish(kinova_angles);
+    joint_vels_publisher_->publish(kinova_vels);
     joint_command_publisher_->publish(joint_command_msg);
     joint_state_publisher_->publish(joint_state);
 }

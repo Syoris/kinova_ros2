@@ -139,6 +139,7 @@ class KinovaArm2
     // ros::Subscriber cartesian_force_subscriber_;
 
     rclcpp::Publisher<kinova_msgs::msg::JointAngles>::SharedPtr joint_angles_publisher_;
+    rclcpp::Publisher<kinova_msgs::msg::JointVelocity>::SharedPtr joint_vels_publisher_;
     rclcpp::Publisher<kinova_msgs::msg::JointAngles>::SharedPtr joint_torque_publisher_;
     rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_publisher_;
     rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr tool_position_publisher_;

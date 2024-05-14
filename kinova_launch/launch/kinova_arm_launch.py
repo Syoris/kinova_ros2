@@ -15,10 +15,12 @@ def generate_launch_description():
         [
             Node(
                 package="kinova_driver",
-                namespace="arm_driver",
+                namespace="arm",
                 executable="kinova_arm_node",
                 name="kinova_arm",
+                output="screen",
                 parameters=[config],
+                # arguments=["--ros-args --log-level debug"],
             ),
         ]
     )
