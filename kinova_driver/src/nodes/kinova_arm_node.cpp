@@ -9,6 +9,7 @@
 #include "kinova_driver/kinova_api.h"
 #include "kinova_driver/kinova_comm2.h"
 #include "kinova_driver/kinova_arm2.h"
+#include "kinova_driver/kinova_joint_angles_action.h"
 // #include "kinova_driver/kinova_tool_pose_action.h"
 // #include "kinova_driver/kinova_joint_angles_action.h"
 // #include "kinova_driver/kinova_fingers_action.h"
@@ -49,8 +50,13 @@ public:
     void init_driver(){
         RCLCPP_DEBUG(this->get_logger(), "KinovaArmDriver2 init_driver");
 
-        comm_ = std::make_shared<kinova::KinovaComm2>(this->shared_from_this(), api_mutex_, is_first_init_, kinova_robot_type_);
-        arm_ = std::make_shared<kinova::KinovaArm2>(this->shared_from_this(), comm_, kinova_robot_type_, kinova_robot_name_);
+        // comm_ = std::make_shared<kinova::KinovaComm2>(this->shared_from_this(), api_mutex_, is_first_init_, kinova_robot_type_);
+        // arm_ = std::make_shared<kinova::KinovaArm2>(this->shared_from_this(), comm_, kinova_robot_type_, kinova_robot_name_);
+        
+        // angles_action_server_ = std::make_shared<kinova::KinovaAnglesActionServer>(this->shared_from_this(), comm_);
+        angles_action_server_ = std::make_shared<kinova::KinovaAnglesActionServer>(this->shared_from_this());
+
+
         // kinova::KinovaPoseActionServer pose_server(comm, nh, kinova_robotType, kinova_robotName);
         // kinova::KinovaAnglesActionServer angles_server(comm, nh);
         // kinova::KinovaFingersActionServer fingers_server(comm, nh);
@@ -73,6 +79,7 @@ private:
     // Classes
     std::shared_ptr<kinova::KinovaComm2> comm_;
     std::shared_ptr<kinova::KinovaArm2> arm_;
+    std::shared_ptr<kinova::KinovaAnglesActionServer> angles_action_server_;
 
 };
 

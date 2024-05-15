@@ -1,5 +1,5 @@
-#ifndef KINOVA_DRIVER_KINOVA_COMM_H
-#define KINOVA_DRIVER_KINOVA_COMM_H
+#ifndef KINOVA_DRIVER_KINOVA_COMM2_H
+#define KINOVA_DRIVER_KINOVA_COMM2_H
 
 #include <boost/thread/recursive_mutex.hpp>
 

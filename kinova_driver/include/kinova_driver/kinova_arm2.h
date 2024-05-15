@@ -7,8 +7,8 @@
  *
  */
 
-#ifndef KINOVA_DRIVER_KINOVA_ARM_H
-#define KINOVA_DRIVER_KINOVA_ARM_H
+#ifndef KINOVA_DRIVER_KINOVA_ARM2_H
+#define KINOVA_DRIVER_KINOVA_ARM2_H
 
 #include "rclcpp/rclcpp.hpp"
 

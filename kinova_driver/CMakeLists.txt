@@ -8,6 +8,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(geometry_msgs REQUIRED)
 # find_package(std_msgs REQUIRED)
 find_package(kinova_msgs REQUIRED)
@@ -18,6 +19,7 @@ find_package(sensor_msgs REQUIRED)
 
 
 ##### BUILD #####
+# MARK: BUILD
 # # Includes
 # include_directories(
 #   include
@@ -37,6 +39,7 @@ add_library(kinova_driver_lib
   src/kinova_api.cpp
   src/kinova_arm2.cpp
   src/kinova_comm2.cpp
+  src/kinova_joint_angles_action.cpp
   src/kinova_ros2_types.cpp
   # src/kinova_tool_pose_action.cpp
   # src/kinova_joint_angles_action.cpp
@@ -56,6 +59,7 @@ add_library(kinova_driver_lib
 )
 ament_target_dependencies(kinova_driver_lib
   rclcpp
+  rclcpp_action
   geometry_msgs
   kinova_msgs
   sensor_msgs
@@ -88,6 +92,7 @@ target_link_libraries(kinova_arm_node kinova_driver_lib)
 
 
 ##### INSTALL #####
+# MARK: INSTALL
 # Copy over Kinova .so binary blobs to /usr/lib
 install(FILES
   lib/${CMAKE_LIBRARY_ARCHITECTURE}/USBCommLayerUbuntu.so
