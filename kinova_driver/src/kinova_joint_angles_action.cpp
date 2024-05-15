@@ -11,7 +11,7 @@ KinovaAnglesActionServer::KinovaAnglesActionServer(rclcpp::Node::SharedPtr node)
 
     this->action_server_ = rclcpp_action::create_server<JointAnglesAction>(
       this->node_,
-      "joint_angles",
+      "go_to_angles",
       std::bind(&KinovaAnglesActionServer::handle_goal, this, _1, _2),
       std::bind(&KinovaAnglesActionServer::handle_cancel, this, _1),
       std::bind(&KinovaAnglesActionServer::handle_accepted, this, _1));
