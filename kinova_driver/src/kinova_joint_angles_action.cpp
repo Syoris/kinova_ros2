@@ -86,6 +86,14 @@ void KinovaAnglesActionServer::execute(const std::shared_ptr<GoalHandleJointAngl
             return;
         }
 
+        // if (i == 5) {
+        //     // Check if goal is done
+        //     result->angles = curr_angles_msg;
+        //     goal_handle->abort(result);
+        //     RCLCPP_INFO(node_->get_logger(), "Goal aborted");
+        //     return;
+        // }
+
         // Update sequence
         // curr_angles_msg = current_joint_angles.constructAnglesMsg();
 

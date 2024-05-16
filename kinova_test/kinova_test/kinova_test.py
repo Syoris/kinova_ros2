@@ -235,13 +235,11 @@ class KinovaTest(Node):
 
         self.get_logger().info("Sending goal...")
         self._go_to_angles_send_future = self._go_to_angles_client.send_goal_async(
-            goal_msg, feedback_callback=self.go_to_angles_feedback_callback
+            goal_msg, feedback_callback=self.go_to_angles_feedback_cb
         )
-        self._go_to_angles_send_future.add_done_callback(
-            self.go_to_angles_response_callback
-        )
+        self._go_to_angles_send_future.add_done_callback(self.go_to_angles_response_cb)
 
-    def go_to_angles_response_callback(self, future):
+    def go_to_angles_response_cb(self, future):
         goal_handle = future.result()
         if not goal_handle.accepted:
             self.get_logger().info("Goal rejected :(")
@@ -252,27 +250,42 @@ class KinovaTest(Node):
         self.get_logger().info("Goal accepted :)")
 
         self._go_to_angles_goal_future = goal_handle.get_result_async()
-        self._go_to_angles_goal_future.add_done_callback(
-            self.go_to_angles_result_callback
-        )
+        self._go_to_angles_goal_future.add_done_callback(self.go_to_angles_result_cb)
 
         # Start a 2 second timer
-        self._cancel_timer = self.create_timer(2.0, self.cancel_timer_callback)
+        self._cancel_timer = self.create_timer(4.0, self.cancel_timer_callback)
 
-    def go_to_angles_result_callback(self, future: rclpy.task.Future):
+    def go_to_angles_result_cb(self, future: rclpy.task.Future):
         self.get_logger().info("Go to angles result callback")
         result = future.result()
 
         status = result.status
         self.get_logger().info(f"Status: {status}")
+        res_angles = result.result.angles
+        res_str = (
+            f"\n\tJoint 1: {res_angles.joint1}"
+            f"\n\tJoint 2: {res_angles.joint2}"
+            f"\n\tJoint 3: {res_angles.joint3}"
+            f"\n\tJoint 4: {res_angles.joint4}"
+            f"\n\tJoint 5: {res_angles.joint5}"
+            f"\n\tJoint 6: {res_angles.joint6}"
+            f"\n\tJoint 7: {res_angles.joint7}"
+        )
+        self.get_logger().info(f"Result angles: {res_str}")
 
         if status == GoalStatus.STATUS_SUCCEEDED:
-            self.get_logger().info(f"Result: {result.result.angles}")
+            self.get_logger().info("GOAL SUCCESSFUL!")
+
+        elif status == GoalStatus.STATUS_ABORTED:
+            self.get_logger().info("GOAL ABORTED")
+
+        elif status == GoalStatus.STATUS_CANCELED:
+            self.get_logger().info("GOAL CANCELED")
 
         else:
             self.get_logger().info(f"Goal failed with status: {status}")
 
-    def go_to_angles_feedback_callback(self, feedback_msg):
+    def go_to_angles_feedback_cb(self, feedback_msg):
         feedback = feedback_msg.feedback.angles
         feedback_str = (
             f"Feedback:"
@@ -291,18 +304,6 @@ class KinovaTest(Node):
         cancel_response = future.result()
         if len(cancel_response.goals_canceling) > 0:
             self.get_logger().info("Goal successfully canceled")
-            # cancel_state = cancel_response.result.angles
-            # _str = (
-            #     f"Cancel state:"
-            #     f"\n\tJoint 1: {cancel_state.joint1}"
-            #     f"\n\tJoint 2: {cancel_state.joint2}"
-            #     f"\n\tJoint 3: {cancel_state.joint3}"
-            #     f"\n\tJoint 4: {cancel_state.joint4}"
-            #     f"\n\tJoint 5: {cancel_state.joint5}"
-            #     f"\n\tJoint 6: {cancel_state.joint6}"
-            #     f"\n\tJoint 7: {cancel_state.joint7}"
-            # )
-            self.get_logger().info(f"{future}")
 
         else:
             self.get_logger().info("Goal failed to cancel")
