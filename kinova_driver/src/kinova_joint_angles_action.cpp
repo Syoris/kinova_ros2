@@ -15,6 +15,11 @@ KinovaAnglesActionServer::KinovaAnglesActionServer(rclcpp::Node::SharedPtr node)
       std::bind(&KinovaAnglesActionServer::handle_goal, this, _1, _2),
       std::bind(&KinovaAnglesActionServer::handle_cancel, this, _1),
       std::bind(&KinovaAnglesActionServer::handle_accepted, this, _1));
+
+    rate_hz_ = 1;
+    tolerance_ = 2.0;
+    jointSpeedLimitJoints123 = 20;
+    jointSpeedLimitJoints456 = 20;
 }
 
 
@@ -86,13 +91,13 @@ void KinovaAnglesActionServer::execute(const std::shared_ptr<GoalHandleJointAngl
             return;
         }
 
-        // if (i == 5) {
-        //     // Check if goal is done
-        //     result->angles = curr_angles_msg;
-        //     goal_handle->abort(result);
-        //     RCLCPP_INFO(node_->get_logger(), "Goal aborted");
-        //     return;
-        // }
+        if (i == 5) {
+            // Check if goal is done
+            result->angles = curr_angles_msg;
+            goal_handle->abort(result);
+            RCLCPP_INFO(node_->get_logger(), "Goal aborted");
+            return;
+        }
 
         // Update sequence
         // curr_angles_msg = current_joint_angles.constructAnglesMsg();

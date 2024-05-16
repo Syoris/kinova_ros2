@@ -10,6 +10,7 @@
 #include "kinova_driver/kinova_comm2.h"
 #include "kinova_driver/kinova_arm2.h"
 #include "kinova_driver/kinova_joint_angles_action.h"
+#include "kinova_driver/kinova_cartesian_pose_action.h"
 // #include "kinova_driver/kinova_tool_pose_action.h"
 // #include "kinova_driver/kinova_joint_angles_action.h"
 // #include "kinova_driver/kinova_fingers_action.h"
@@ -53,8 +54,11 @@ public:
         // comm_ = std::make_shared<kinova::KinovaComm2>(this->shared_from_this(), api_mutex_, is_first_init_, kinova_robot_type_);
         // arm_ = std::make_shared<kinova::KinovaArm2>(this->shared_from_this(), comm_, kinova_robot_type_, kinova_robot_name_);
         
+        // TODO: Add comm_
         // angles_action_server_ = std::make_shared<kinova::KinovaAnglesActionServer>(this->shared_from_this(), comm_);
         angles_action_server_ = std::make_shared<kinova::KinovaAnglesActionServer>(this->shared_from_this());
+
+        pose_action_server_ = std::make_shared<kinova::KinovaCartesianPoseActionServer>(this->shared_from_this());
 
 
         // kinova::KinovaPoseActionServer pose_server(comm, nh, kinova_robotType, kinova_robotName);
@@ -80,6 +84,8 @@ private:
     std::shared_ptr<kinova::KinovaComm2> comm_;
     std::shared_ptr<kinova::KinovaArm2> arm_;
     std::shared_ptr<kinova::KinovaAnglesActionServer> angles_action_server_;
+    std::shared_ptr<kinova::KinovaCartesianPoseActionServer> pose_action_server_;
+
 
 };
 

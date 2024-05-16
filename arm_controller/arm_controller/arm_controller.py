@@ -16,12 +16,14 @@ from kinova_msgs.srv import (
     ZeroTorques,
     RunCOMParametersEstimation,
 )
-from kinova_msgs.action import ArmJointAngles
+from kinova_msgs.action import ArmJointAngles, ArmPose
+
+from arm_controller.ActionClients import GoToAnglesClient, GoToPoseClient
 
 
-class KinovaTest(Node):
+class ArmController(Node):
     def __init__(self):
-        super().__init__("kinova_test")
+        super().__init__("arm_controller")
 
         self._is_homed = False
 
@@ -31,10 +33,10 @@ class KinovaTest(Node):
 
         self.timer = self.create_timer(0.01, self.timer_callback)
 
-        self.get_logger().info("KinovaTest node has been initialized.")
+        self.get_logger().info("ArmController node has been initialized.")
 
-    # ---------------- CLIENTS ----------------
-    # MARK: CLIENTS
+    # ---------------- SERVICE CLIENTS ----------------
+    # MARK: SERVICES
     def _init_clients(self):
         # ------ Clients ------
         self.get_logger().info("Creating clients...")
@@ -204,15 +206,19 @@ class KinovaTest(Node):
         self.publish_joint_vels([])
 
     # ---------------- ACTION CLIENTS ----------------
-    # MARK: ACTION CLIENTS
+    # MARK: ACTIONS
     def _init_action_clients(self):
         self.get_logger().info("Creating action clients...")
 
-        self._go_to_angles_client = ActionClient(
-            self, ArmJointAngles, "/arm/go_to_angles"
+        self._go_to_angles_client = GoToAnglesClient(
+            self, action_type=ArmJointAngles, action_name="/arm/go_to_angles"
         )
 
-    def go_to_angles(self, angles):
+        self._go_to_pose_client = GoToPoseClient(
+            self, action_type=ArmPose, action_name="/arm/go_to_pose"
+        )
+
+    def go_to_angles(self, angles: list):
         """Action
 
         Args:
@@ -227,123 +233,54 @@ class KinovaTest(Node):
         goal_msg.angles.joint6 = angles[5]
         goal_msg.angles.joint7 = angles[6]
 
-        self._go_to_angles_client.wait_for_server()
+        self._go_to_angles_client.send_goal(goal_msg)
 
-        # self._go_to_angles_client.send_goal(goal_msg)
+    def go_to_pose(self, pose: list, orientation: list):
+        goal_msg = ArmPose.Goal()
 
-        # self._action_client.send_goal_async(goal_msg)
+        goal_msg.pose.pose.position.x = pose[0]
+        goal_msg.pose.pose.position.y = pose[1]
+        goal_msg.pose.pose.position.z = pose[2]
 
-        self.get_logger().info("Sending goal...")
-        self._go_to_angles_send_future = self._go_to_angles_client.send_goal_async(
-            goal_msg, feedback_callback=self.go_to_angles_feedback_cb
-        )
-        self._go_to_angles_send_future.add_done_callback(self.go_to_angles_response_cb)
+        goal_msg.pose.pose.orientation.x = orientation[0]
+        goal_msg.pose.pose.orientation.y = orientation[1]
+        goal_msg.pose.pose.orientation.z = orientation[2]
+        goal_msg.pose.pose.orientation.w = orientation[3]
 
-    def go_to_angles_response_cb(self, future):
-        goal_handle = future.result()
-        if not goal_handle.accepted:
-            self.get_logger().info("Goal rejected :(")
-            return
-
-        self._go_to_angles_goal_handle = goal_handle
-
-        self.get_logger().info("Goal accepted :)")
-
-        self._go_to_angles_goal_future = goal_handle.get_result_async()
-        self._go_to_angles_goal_future.add_done_callback(self.go_to_angles_result_cb)
-
-        # Start a 2 second timer
-        self._cancel_timer = self.create_timer(4.0, self.cancel_timer_callback)
-
-    def go_to_angles_result_cb(self, future: rclpy.task.Future):
-        self.get_logger().info("Go to angles result callback")
-        result = future.result()
-
-        status = result.status
-        self.get_logger().info(f"Status: {status}")
-        res_angles = result.result.angles
-        res_str = (
-            f"\n\tJoint 1: {res_angles.joint1}"
-            f"\n\tJoint 2: {res_angles.joint2}"
-            f"\n\tJoint 3: {res_angles.joint3}"
-            f"\n\tJoint 4: {res_angles.joint4}"
-            f"\n\tJoint 5: {res_angles.joint5}"
-            f"\n\tJoint 6: {res_angles.joint6}"
-            f"\n\tJoint 7: {res_angles.joint7}"
-        )
-        self.get_logger().info(f"Result angles: {res_str}")
-
-        if status == GoalStatus.STATUS_SUCCEEDED:
-            self.get_logger().info("GOAL SUCCESSFUL!")
-
-        elif status == GoalStatus.STATUS_ABORTED:
-            self.get_logger().info("GOAL ABORTED")
-
-        elif status == GoalStatus.STATUS_CANCELED:
-            self.get_logger().info("GOAL CANCELED")
-
-        else:
-            self.get_logger().info(f"Goal failed with status: {status}")
-
-    def go_to_angles_feedback_cb(self, feedback_msg):
-        feedback = feedback_msg.feedback.angles
-        feedback_str = (
-            f"Feedback:"
-            f"\n\tJoint 1: {feedback.joint1}"
-            f"\n\tJoint 2: {feedback.joint2}"
-            f"\n\tJoint 3: {feedback.joint3}"
-            f"\n\tJoint 4: {feedback.joint4}"
-            f"\n\tJoint 5: {feedback.joint5}"
-            f"\n\tJoint 6: {feedback.joint6}"
-            f"\n\tJoint 7: {feedback.joint7}"
-        )
-
-        self.get_logger().info(f"{feedback_str}")
-
-    def go_to_angles_cancel_done(self, future):
-        cancel_response = future.result()
-        if len(cancel_response.goals_canceling) > 0:
-            self.get_logger().info("Goal successfully canceled")
-
-        else:
-            self.get_logger().info("Goal failed to cancel")
-
-    def cancel_timer_callback(self):
-        self.get_logger().info("Canceling goal")
-        # Cancel the goal
-        future = self._go_to_angles_goal_handle.cancel_goal_async()
-        future.add_done_callback(self.go_to_angles_cancel_done)
-
-        # Cancel the timer
-        self._cancel_timer.cancel()
+        self._go_to_pose_client.send_goal(goal_msg)
 
 
 def main():
     rclpy.init()
 
-    kinova_test = KinovaTest()
+    arm_controller = ArmController()
 
     # # Start the arm
-    # kinova_test.start_arm()
+    # arm_controller.start_arm()
 
     # # Stop the arm
-    # response = kinova_test.stop_arm()
+    # response = arm_controller.stop_arm()
 
     # # Home the arm
-    # kinova_test.home_arm()
+    # arm_controller.home_arm()
     # time.sleep(1)
 
     # # Pusblish joint vels
-    # kinova_test.publish_joint_vels([])
+    # arm_controller.publish_joint_vels([])
 
-    # Go to angles
-    angles = [10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.2]
-    kinova_test.go_to_angles(angles)
+    # # Go to angles
+    # angles = [10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.2]
+    # arm_controller.go_to_angles(angles)
 
-    rclpy.spin(kinova_test)
+    # Go to pose
+    position = [1.0, 0.0, 1.5]
+    orientation = [90.0, 0.0, 0.0, 0.0]
+    arm_controller.go_to_pose(position, orientation)
 
-    kinova_test.get_logger().info("Done, destroying node")
-    kinova_test.destroy_node()
+    rclpy.spin(arm_controller)
+
+    arm_controller.get_logger().info("Done, destroying node")
+    arm_controller.destroy_node()
     rclpy.shutdown()
 
 

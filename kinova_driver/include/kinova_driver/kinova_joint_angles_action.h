@@ -20,13 +20,14 @@ namespace kinova
 class KinovaAnglesActionServer
 {
  public:
-    using JointAnglesAction = kinova_msgs::action::ArmJointAngles;
-    using GoalHandleJointAngles = rclcpp_action::ServerGoalHandle<JointAnglesAction>;
+   using JointAnglesAction = kinova_msgs::action::ArmJointAngles;
+   using GoalHandleJointAngles = rclcpp_action::ServerGoalHandle<JointAnglesAction>;
 
-    // explicit KinovaAnglesActionServer(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2);
-    explicit KinovaAnglesActionServer(rclcpp::Node::SharedPtr node);
+   //TODO
+   // explicit KinovaAnglesActionServer(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2);
+   explicit KinovaAnglesActionServer(rclcpp::Node::SharedPtr node);
 
-    ~KinovaAnglesActionServer();
+   ~KinovaAnglesActionServer();
 
  private:
     // Action callbacks and attributes
@@ -43,12 +44,7 @@ class KinovaAnglesActionServer
     rclcpp::Node::SharedPtr node_;
     std::shared_ptr<kinova::KinovaComm2> comm_;
 
-    rclcpp::Time last_nonstall_time_;
-    KinovaAngles last_nonstall_angles_;
-
     // Parameters
-    double stall_interval_seconds_;
-    double stall_threshold_;
     double rate_hz_;
     float tolerance_;
     double jointSpeedLimitJoints123;

@@ -39,23 +39,9 @@ add_library(kinova_driver_lib
   src/kinova_api.cpp
   src/kinova_arm2.cpp
   src/kinova_comm2.cpp
-  src/kinova_joint_angles_action.cpp
   src/kinova_ros2_types.cpp
-  # src/kinova_tool_pose_action.cpp
-  # src/kinova_joint_angles_action.cpp
-  # src/kinova_fingers_action.cpp
-  # src/kinova_joint_trajectory_controller.cpp
-  # include/kinova_driver/kinova_joint_trajectory_controller.h
-  # include/kinova_driver/kinova_joint_angles_action.h
-  # include/kinova_driver/kinova_api.h
-  # include/kinova_driver/kinova_arm.h
-  # include/kinova_driver/kinova_comm2.h
-  # include/kinova_driver/kinova_fingers_action.h
-  # include/kinova_driver/kinova_tool_pose_action.h
-  # include/kinova_driver/kinova_ros_types.h
-  # include/kinova/Kinova.API.USBCommLayerUbuntu.h
-  # include/kinova/Kinova.API.USBCommandLayerUbuntu.h
-  # include/kinova/KinovaTypes.h
+  src/kinova_joint_angles_action.cpp
+  src/kinova_cartesian_pose_action.cpp
 )
 ament_target_dependencies(kinova_driver_lib
   rclcpp
