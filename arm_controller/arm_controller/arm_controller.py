@@ -3,8 +3,6 @@ import rclpy.action
 from rclpy.node import Node
 from rclpy.action import ActionClient
 
-import time
-
 from action_msgs.msg import GoalStatus
 from kinova_msgs.msg import JointAngles, JointVelocity, PoseVelocity
 from kinova_msgs.srv import (
@@ -19,13 +17,24 @@ from kinova_msgs.srv import (
 from kinova_msgs.action import ArmJointAngles, ArmPose
 
 from arm_controller.ActionClients import GoToAnglesClient, GoToPoseClient
+from enum import Enum
+
+
+class ControlMode(Enum):
+    REST_MODE = 1
+    JOINT_MODE = 2
+    POSE_MODE = 3
 
 
 class ArmController(Node):
     def __init__(self):
         super().__init__("arm_controller")
 
-        self._is_homed = False
+        self._is_homed = True  # TODO: Change to False
+        self._control_mode = self.set_control_mode(ControlMode.REST_MODE)
+
+        self.target_joint_vels = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.target_pose_vels = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         # self._init_clients()
         self._init_publishers()
@@ -34,6 +43,10 @@ class ArmController(Node):
         self.timer = self.create_timer(0.01, self.timer_callback)
 
         self.get_logger().info("ArmController node has been initialized.")
+
+    def set_control_mode(self, mode: ControlMode):
+        self.get_logger().info(f"Setting control mode to {mode}")
+        self._control_mode = mode
 
     # ---------------- SERVICE CLIENTS ----------------
     # MARK: SERVICES
@@ -169,8 +182,8 @@ class ArmController(Node):
             PoseVelocity, "/arm/in/cartesian_velocity", 5
         )
 
-    def publish_joint_vels(self, joint_vels):
-        joint_vels = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    def publish_joint_vels(self):
+        joint_vels = self.target_joint_vels
 
         msg = JointVelocity()
         msg.joint1 = joint_vels[0]
@@ -183,8 +196,8 @@ class ArmController(Node):
 
         self.joint_vels_pub_.publish(msg)
 
-    def publish_pose_vels(self, pose_vels):
-        pose_vels = [5.0, 0.0, 0.0, 0.0, 0.0, 5.0]
+    def publish_pose_vels(self):
+        pose_vels = self.target_pose_vels
 
         msg = PoseVelocity()
 
@@ -201,9 +214,12 @@ class ArmController(Node):
         if not self._is_homed:
             return
 
-        self.get_logger().info("Timer callback")
-        # self.publish_pose_vels([])
-        self.publish_joint_vels([])
+        # self.get_logger().info("Timer callback")
+        if self._control_mode == ControlMode.JOINT_MODE:
+            self.publish_joint_vels()
+
+        elif self._control_mode == ControlMode.POSE_MODE:
+            self.publish_pose_vels()
 
     # ---------------- ACTION CLIENTS ----------------
     # MARK: ACTIONS
@@ -265,17 +281,19 @@ def main():
     # arm_controller.home_arm()
     # time.sleep(1)
 
-    # # Pusblish joint vels
-    # arm_controller.publish_joint_vels([])
+    # Pusblish joint vels
+    joint_vels = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    arm_controller.target_joint_vels = joint_vels
+    arm_controller.set_control_mode(ControlMode.JOINT_MODE)
 
     # # Go to angles
     # angles = [10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.2]
     # arm_controller.go_to_angles(angles)
 
-    # Go to pose
-    position = [1.0, 0.0, 1.5]
-    orientation = [90.0, 0.0, 0.0, 0.0]
-    arm_controller.go_to_pose(position, orientation)
+    # # Go to pose
+    # position = [1.0, 0.0, 1.5]
+    # orientation = [90.0, 0.0, 0.0, 0.0]
+    # arm_controller.go_to_pose(position, orientation)
 
     rclpy.spin(arm_controller)
 
