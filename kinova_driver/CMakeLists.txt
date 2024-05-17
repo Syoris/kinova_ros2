@@ -76,6 +76,23 @@ ament_target_dependencies(kinova_arm_node
 )
 target_link_libraries(kinova_arm_node kinova_driver_lib)
 
+# tf_updater
+add_executable(kinova_tf_updater
+  src/nodes/kinova_tf_updater.cpp
+)
+target_include_directories(kinova_tf_updater PUBLIC
+  include)
+ament_target_dependencies(kinova_tf_updater
+  # geometry_msgs
+  kinova_msgs
+  rclcpp
+  # sensor_msgs
+  # std_msgs
+  tf2
+  # interactive_markers
+  # visualization_msgs
+)
+target_link_libraries(kinova_tf_updater kinova_driver_lib)
 
 ##### INSTALL #####
 # MARK: INSTALL
@@ -92,7 +109,7 @@ install(FILES
 # Install executables and libraries
 install(TARGETS 
   kinova_arm_node
-  # kinova_tf_updater
+  kinova_tf_updater
   # kinova_interactive_control
   # kinova_driver
   kinova_driver_lib

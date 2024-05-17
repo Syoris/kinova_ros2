@@ -265,6 +265,9 @@ class ArmController(Node):
 
         self._go_to_pose_client.send_goal(goal_msg)
 
+    def go_angles(self, angles: list):
+        self.get_logger().info("Going to angles...")
+
 
 def main():
     rclpy.init()

@@ -32,12 +32,14 @@ class KinovaSim(Node):
 
         # Joint vels
         self._joint_vels_sub = self.create_subscription(
-            JointVelocity, "arm/in/joint_velocity", self._joint_vels_callback, 10
+            JointVelocity, "/arm/in/joint_velocity", self._joint_vels_callback, 10
         )
         self._joint_vels_sub
 
         self.pub_rate = 5
         self.pub_timer = self.create_timer(1 / self.pub_rate, self._timer_callback)
+
+        self.get_logger().info("KinovaSim initialization done")
 
     def _timer_callback(self):
         # self.get_logger().info("Timer callback")
