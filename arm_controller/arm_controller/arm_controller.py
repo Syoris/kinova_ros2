@@ -2,6 +2,7 @@ import rclpy
 import rclpy.action
 from rclpy.node import Node
 from rclpy.action import ActionClient
+from rclpy.signals import SignalHandlerOptions
 
 from action_msgs.msg import GoalStatus
 from kinova_msgs.msg import JointAngles, JointVelocity, PoseVelocity
@@ -48,6 +49,11 @@ class ArmController(Node):
     def set_control_mode(self, mode: ControlMode):
         self.get_logger().info(f"Setting control mode to {mode}")
         self._control_mode = mode
+
+    def cancel_actions(self):
+        self.get_logger().info("Cancelling all actions...")
+
+        self._go_to_angles_client.cancel_goal()
 
     # ---------------- SERVICE CLIENTS ----------------
     # MARK: SERVICES
@@ -168,6 +174,30 @@ class ArmController(Node):
 
         return res
 
+    def zero_torques(self):
+        self.get_logger().info("Zeroing torques...")
+
+        self.future = self.zero_torques_cli.call_async(self.zero_torques_cli_req)
+        rclpy.spin_until_future_complete(self, self.future)
+
+        res = self.future.result()
+        self.get_logger().info(f"Result: {res.result}")
+
+        return res
+
+    def clear_trajectories(self):
+        self.get_logger().info("Clearing trajectories...")
+
+        self.future = self.clear_trajectories_cli.call_async(
+            self.clear_trajectories_cli_req
+        )
+        rclpy.spin_until_future_complete(self, self.future)
+
+        res = self.future.result()
+        self.get_logger().info(f"Result: {res.result}")
+
+        return res
+
     # ---------------- PUBLISHERS ----------------
     # MARK: PUBLISHERS
     def _init_publishers(self):
@@ -242,13 +272,13 @@ class ArmController(Node):
             angles (list): Target angle of each joint
         """
         goal_msg = ArmJointAngles.Goal()
-        goal_msg.angles.joint1 = angles[0]
-        goal_msg.angles.joint2 = angles[1]
-        goal_msg.angles.joint3 = angles[2]
-        goal_msg.angles.joint4 = angles[3]
-        goal_msg.angles.joint5 = angles[4]
-        goal_msg.angles.joint6 = angles[5]
-        goal_msg.angles.joint7 = angles[6]
+        goal_msg.angles.joint1 = float(angles[0])
+        goal_msg.angles.joint2 = float(angles[1])
+        goal_msg.angles.joint3 = float(angles[2])
+        goal_msg.angles.joint4 = float(angles[3])
+        goal_msg.angles.joint5 = float(angles[4])
+        goal_msg.angles.joint6 = float(angles[5])
+        goal_msg.angles.joint7 = float(angles[6])
 
         self._go_to_angles_client.send_goal(goal_msg)
 
@@ -271,40 +301,61 @@ class ArmController(Node):
 
 
 def main():
-    rclpy.init()
+    # rclpy.init()
+    rclpy.init(signal_handler_options=SignalHandlerOptions.NO)
 
-    arm_controller = ArmController()
+    try:
+        arm_controller = ArmController()
 
-    # Start the arm
-    arm_controller.start_arm()
+        # Start the arm
+        arm_controller.start_arm()
 
-    # # Home the arm
-    # arm_controller.home_arm()
-    time.sleep(3)
+        # Home the arm
+        arm_controller.home_arm()
+        time.sleep(1)
 
-    # # Pusblish joint vels
-    # joint_vels = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 5.0]
-    # arm_controller.target_joint_vels = joint_vels
-    # arm_controller.set_control_mode(ControlMode.JOINT_MODE)
+        # # Pusblish joint vels
+        # joint_vels = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 5.0]
+        # arm_controller.target_joint_vels = joint_vels
+        # arm_controller.set_control_mode(ControlMode.JOINT_MODE)
 
-    # Go to angles
-    # home_angles = [103.0, 197, 180, 43, 265, 257, 288]
-    angles = [103.0, 197.0, 180.0, 43.0, 265.0, 257.0, 0.0]
-    arm_controller.go_to_angles(angles)
+        # # Go to angles
+        # # home_angles = [103.0, 197, 180, 43, 265, 257, 288]
+        # angles = [180.0, 180.0, 180.0, 180, 180.0, 180.0, 180.0]
+        # arm_controller.go_to_angles(angles)
+        # time.sleep(2)
 
-    # # Go to pose
-    # position = [1.0, 0.0, 1.5]
-    # orientation = [90.0, 0.0, 0.0, 0.0]
-    # arm_controller.go_to_pose(position, orientation)
+        # # Go to pose
+        # home_pose = [0.20, -0.26, 0.5]
+        # home_orientation = [
+        #     -0.14027640223503113,
+        #     0.7090284824371338,
+        #     -0.42349401116371155,
+        #     0.5461264252662659,
+        # ]
+        # position = [1.0, 0.0, 1.5]
+        # orientation = [90.0, 0.0, 0.0, 0.0]
+        # arm_controller.go_to_pose(position, orientation)
 
-    # # Stop the arm
-    # response = arm_controller.stop_arm()
+        # # Run COM parameters estimation
+        # arm_controller.run_com_parameters_estimation()
 
-    rclpy.spin(arm_controller)
+        # # Torques calibration
+        # arm_controller.zero_torques()
 
-    arm_controller.get_logger().info("Done, destroying node")
-    arm_controller.destroy_node()
-    rclpy.shutdown()
+        # # Stop the arm
+        # response = arm_controller.stop_arm()
+
+        rclpy.spin(arm_controller)
+
+    except KeyboardInterrupt:
+        arm_controller.get_logger().info("Keyboard interrupt")
+        arm_controller.cancel_actions()
+
+    finally:
+        arm_controller.get_logger().info("Shutting down...")
+        arm_controller.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == "__main__":

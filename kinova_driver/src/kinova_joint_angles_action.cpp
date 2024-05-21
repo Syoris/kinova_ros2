@@ -17,7 +17,7 @@ KinovaAnglesActionServer::KinovaAnglesActionServer(rclcpp::Node::SharedPtr node,
       std::bind(&KinovaAnglesActionServer::handle_accepted, this, _1));
 
     rate_hz_ = 1;
-    tolerance_ = 2.0;
+    tolerance_ = 1.0;
     jointSpeedLimitJoints123 = 20;
     jointSpeedLimitJoints456 = 20;
 }
@@ -74,46 +74,79 @@ void KinovaAnglesActionServer::execute(const std::shared_ptr<GoalHandleJointAngl
     auto result = std::make_shared<JointAnglesAction::Result>();
 
     KinovaAngles current_joint_angles;
+    KinovaAngles target(goal->angles);
 
+    RCLCPP_INFO(node_->get_logger(), "Target joint angles: %f, %f, %f, %f, %f, %f, %f", target.Actuator1, target.Actuator2, target.Actuator3, target.Actuator4, target.Actuator5, target.Actuator6, target.Actuator7);
 
-    // loop 10, for testing
-    for (int i = 1; (i < 10) && rclcpp::ok(); ++i) {
-        // comm_->getJointAngles(current_joint_angles);
-        curr_angles_msg = current_joint_angles.constructAnglesMsg();
-        curr_angles_msg.joint1 = i;
+    comm_->setJointAngles(target, jointSpeedLimitJoints123, jointSpeedLimitJoints456);
 
-        // Check if there is a cancel request
-        if (goal_handle->is_canceling()) {
-            result->angles = curr_angles_msg;
+    try{
+        while (rclcpp::ok())
+        {
+            comm_->getJointAngles(current_joint_angles);
+            curr_angles_msg = current_joint_angles.constructAnglesMsg();
+
             
-            goal_handle->canceled(result);
-            RCLCPP_INFO(node_->get_logger(), "Goal canceled");
-            return;
+            // Check if the action has succeeeded
+            if (target.isCloseToOther(current_joint_angles, tolerance_))
+            {
+                result->angles = curr_angles_msg;
+                goal_handle->succeed(result);
+                RCLCPP_INFO(node_->get_logger(), "Goal succeeded");
+                return;
+            }
+
+            // Check if there is a cancel request
+            else if (goal_handle->is_canceling()) {
+                result->angles = curr_angles_msg;
+                
+                goal_handle->canceled(result);
+                // comm_->stopAPI();
+                comm_->eraseAllTrajectories();
+
+                RCLCPP_INFO(node_->get_logger(), "Goal canceled");
+                return;
+            }
+            
+            // Arm stopped
+            else if (comm_->isStopped())
+            {
+                RCLCPP_INFO(node_->get_logger(), "Could not complete action because the arm is 'stopped'.");
+                result->angles = curr_angles_msg;
+
+                goal_handle->abort(result);
+                RCLCPP_INFO(node_->get_logger(), "Goal aborted");
+
+                return;
+            }
+
+            // Feedback
+            else{
+                // Update sequence
+                // curr_angles_msg = current_joint_angles.constructAnglesMsg();
+
+                // Publish feedback
+                goal_handle->publish_feedback(feedback);
+                RCLCPP_INFO(node_->get_logger(), "Publish feedback");
+            }
+
+            // Abort example
+            // {
+            //     result->angles = curr_angles_msg;
+            //     goal_handle->abort(result);
+            //     RCLCPP_INFO(node_->get_logger(), "Goal aborted");
+            //     return;
+            // }
+
+            loop_rate.sleep();
         }
-
-        if (i == 5) {
-            // Check if goal is done
-            result->angles = curr_angles_msg;
-            goal_handle->abort(result);
-            RCLCPP_INFO(node_->get_logger(), "Goal aborted");
-            return;
-        }
-
-        // Update sequence
-        // curr_angles_msg = current_joint_angles.constructAnglesMsg();
-
-        // Publish feedback
-        goal_handle->publish_feedback(feedback);
-        RCLCPP_INFO(node_->get_logger(), "Publish feedback");
-
-        loop_rate.sleep();
     }
-
-    // Check if goal is done
-    if (rclcpp::ok()) {
-      result->angles = curr_angles_msg;
-      goal_handle->succeed(result);
-      RCLCPP_INFO(node_->get_logger(), "Goal succeeded");
+    catch(const std::exception& e)
+    {
+        result->angles = curr_angles_msg;
+        RCLCPP_ERROR(node_->get_logger(), "Error executing goal: %s", e.what());
+        RCLCPP_ERROR(node_->get_logger(), "Aborting goal");
+        goal_handle->abort(result);
     }
 
 }

@@ -29,6 +29,12 @@ def generate_launch_description():
         description="Launch the kinova_arm_node in simulation mode",
     )
 
+    sim_arg = DeclareLaunchArgument(
+        "rviz",
+        default_value="False",
+        description="Launch rviz",
+    )
+
     kinova_sim_node = Node(
         package="kinova_sim",
         namespace="arm",
