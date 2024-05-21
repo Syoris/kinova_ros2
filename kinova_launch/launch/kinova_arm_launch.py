@@ -14,6 +14,9 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 
+from launch.actions import IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+
 
 def generate_launch_description():
     config = os.path.join(
@@ -49,11 +52,22 @@ def generate_launch_description():
         executable="kinova_tf_updater",
     )
 
+    # Display launch
+    rviz_launch_desc = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [
+                os.path.join(get_package_share_directory("kinova_launch"), "launch"),
+                "/rviz_launch.py",
+            ]
+        )
+    )
+
     return LaunchDescription(
         [
             sim_arg,
             kinova_arm_node,
             kinova_tf_updater_node,
             kinova_sim_node,
+            rviz_launch_desc,
         ]
     )

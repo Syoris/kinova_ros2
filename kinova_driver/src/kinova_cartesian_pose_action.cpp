@@ -4,8 +4,8 @@
 namespace kinova
 {
 
-// KinovaCartesianPoseActionServer::KinovaCartesianPoseActionServer(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2):node_(node), comm_(kinova_comm2)
-KinovaCartesianPoseActionServer::KinovaCartesianPoseActionServer(rclcpp::Node::SharedPtr node):node_(node){
+KinovaCartesianPoseActionServer::KinovaCartesianPoseActionServer(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2):node_(node), comm_(kinova_comm2){
+// KinovaCartesianPoseActionServer::KinovaCartesianPoseActionServer(rclcpp::Node::SharedPtr node):node_(node){
     using namespace std::placeholders;
 
     this->action_server_ = rclcpp_action::create_server<CartPoseAction>(
@@ -83,7 +83,7 @@ void KinovaCartesianPoseActionServer::execute(const std::shared_ptr<GoalHandleCa
     // Execute the action
     try{
         // Process goal frame
-        // listener.transformPose(local_pose.header.frame_id, goal->pose, local_pose); // TODO
+        // listener.transformPose(local_pose.header.frame_id, goal->pose, local_pose); // TODO: Transform TF
         // comm_->getCartesianPosition(current_pose);
         local_pose.pose = goal->pose.pose;
 
@@ -109,7 +109,7 @@ void KinovaCartesianPoseActionServer::execute(const std::shared_ptr<GoalHandleCa
 
             local_pose.pose = current_pose.constructPoseMsg();
 
-            // TODO
+            // TODO: Transform TF
             // listener.transformPose(feedback.pose.header.frame_id, local_pose, feedback.pose);
             feedback->pose = local_pose;
 
@@ -133,18 +133,17 @@ void KinovaCartesianPoseActionServer::execute(const std::shared_ptr<GoalHandleCa
                 return;
             }
 
-            // TODO: Add
-            // // Arm stopped
-            // else if (comm_->isStopped())
-            // {
-            //     RCLCPP_INFO(node_->get_logger(), "Could not complete cartesian action because the arm is 'stopped'.");
-            //     result->pose = feedback->pose;
+            // Arm stopped
+            else if (comm_->isStopped())
+            {
+                RCLCPP_INFO(node_->get_logger(), "Could not complete cartesian action because the arm is 'stopped'.");
+                result->pose = feedback->pose;
 
-            //     goal_handle->abort(result);
-            //     RCLCPP_INFO(node_->get_logger(), "Goal aborted");
+                goal_handle->abort(result);
+                RCLCPP_INFO(node_->get_logger(), "Goal aborted");
 
-            //     return;
-            // }
+                return;
+            }
 
             // Feedback
             else{

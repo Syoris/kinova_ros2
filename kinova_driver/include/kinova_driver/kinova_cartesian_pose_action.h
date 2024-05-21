@@ -24,8 +24,8 @@ class KinovaCartesianPoseActionServer
     using CartPoseAction = kinova_msgs::action::ArmPose;
     using GoalHandleCartPose = rclcpp_action::ServerGoalHandle<CartPoseAction>;
 
-    // explicit KinovaCartesianPoseActionServer(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2);
-    explicit KinovaCartesianPoseActionServer(rclcpp::Node::SharedPtr node);
+    explicit KinovaCartesianPoseActionServer(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2);
+   //  explicit KinovaCartesianPoseActionServer(rclcpp::Node::SharedPtr node);
 
     ~KinovaCartesianPoseActionServer();
 

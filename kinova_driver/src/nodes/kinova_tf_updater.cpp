@@ -1,7 +1,7 @@
 #include "rclcpp/rclcpp.hpp"
 
 #include "kinova_msgs/msg/joint_angles.hpp"
-
+#include "kinova_driver/kinova_arm_kinematics.h"
 
 using namespace std::chrono_literals;
 
@@ -26,10 +26,15 @@ public:
         current_angles_.joint6 = 0;
         current_angles_.joint7 = 0;
 
-        tf_update_timer_ = this->create_wall_timer(10ms, std::bind(&KinovaTfUpdater::tfUpdateHandler, this));
+        tf_update_timer_ = this->create_wall_timer(1ms, std::bind(&KinovaTfUpdater::update_tf, this));
 
         RCLCPP_INFO(this->get_logger(), "kinova_tf_updater ready");
+    }
 
+    void init_kin(){
+        RCLCPP_DEBUG(this->get_logger(), "KinovaTfUpdater init_kin");
+
+        forward_kin_ = std::make_shared<kinova::KinovaKinematics>(this->shared_from_this());
     }
 
 private:
@@ -46,26 +51,21 @@ private:
 
     }
 
-    void calculatePostion(void){
-        // // Update the forward Kinematics
-        // float Q[7] = {kinematics_.degToRad(current_angles_.joint1),
-        //             kinematics_.degToRad(current_angles_.joint2),
-        //             kinematics_.degToRad(current_angles_.joint3),
-        //             kinematics_.degToRad(current_angles_.joint4),
-        //             kinematics_.degToRad(current_angles_.joint5),
-        //             kinematics_.degToRad(current_angles_.joint6),
-        //             kinematics_.degToRad(current_angles_.joint7)};
+    void update_tf(){
+        // Update the forward Kinematics
+        float Q[7] = {forward_kin_->degToRad(current_angles_.joint1),
+                    forward_kin_->degToRad(current_angles_.joint2),
+                    forward_kin_->degToRad(current_angles_.joint3),
+                    forward_kin_->degToRad(current_angles_.joint4),
+                    forward_kin_->degToRad(current_angles_.joint5),
+                    forward_kin_->degToRad(current_angles_.joint6),
+                    forward_kin_->degToRad(current_angles_.joint7)};
 
-        // kinematics_.updateForward(Q);
-
-    }
-
-    void tfUpdateHandler(){
-        this->calculatePostion();  // Update TF Tree
+        forward_kin_->updateForward(Q);
     }
 
     // params    
-    // std::shared_ptr<kinova::KinovaForwardKin> forward_kin_;
+    std::shared_ptr<kinova::KinovaKinematics> forward_kin_;
     kinova_msgs::msg::JointAngles current_angles_;
     rclcpp::Subscription<kinova_msgs::msg::JointAngles>::SharedPtr joint_angles_subscriber_;
     rclcpp::TimerBase::SharedPtr tf_update_timer_;
@@ -78,7 +78,7 @@ int main(int argc, char ** argv)
   rclcpp::init(argc, argv);
 
   auto driver_node = std::make_shared<kinova::KinovaTfUpdater>();
-//   driver_node->init_driver();
+  driver_node->init_kin();
   
   rclcpp::spin(driver_node);
   rclcpp::shutdown();

@@ -14,6 +14,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(kinova_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+find_package(tf2_ros REQUIRED)
 find_package(angles REQUIRED)
 find_package(sensor_msgs REQUIRED)
 
@@ -42,6 +43,7 @@ add_library(kinova_driver_lib
   src/kinova_ros2_types.cpp
   src/kinova_joint_angles_action.cpp
   src/kinova_cartesian_pose_action.cpp
+  src/kinova_arm_kinematics.cpp
 )
 ament_target_dependencies(kinova_driver_lib
   rclcpp

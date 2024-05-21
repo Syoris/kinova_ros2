@@ -23,9 +23,8 @@ class KinovaAnglesActionServer
    using JointAnglesAction = kinova_msgs::action::ArmJointAngles;
    using GoalHandleJointAngles = rclcpp_action::ServerGoalHandle<JointAnglesAction>;
 
-   //TODO
-   // explicit KinovaAnglesActionServer(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2);
-   explicit KinovaAnglesActionServer(rclcpp::Node::SharedPtr node);
+   explicit KinovaAnglesActionServer(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2);
+  //  explicit KinovaAnglesActionServer(rclcpp::Node::SharedPtr node);
 
    ~KinovaAnglesActionServer();
 

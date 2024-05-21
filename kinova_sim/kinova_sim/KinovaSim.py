@@ -2,6 +2,16 @@ from rclpy.node import Node
 
 from kinova_msgs.msg import JointAngles, JointVelocity
 
+START_POSE = [
+    0,
+    -180,
+    0,
+    90,
+    0,
+    90,
+    0,
+]
+
 
 class KinovaSim(Node):
     def __init__(self):
@@ -9,13 +19,13 @@ class KinovaSim(Node):
         self.get_logger().info("KinovaSim initialization...")
 
         self.joint_angles = {
-            "joint1": 0.0,
-            "joint2": 0.0,
-            "joint3": 0.0,
-            "joint4": 0.0,
-            "joint5": 0.0,
-            "joint6": 0.0,
-            "joint7": 0.0,
+            "joint1": START_POSE[0],
+            "joint2": START_POSE[1],
+            "joint3": START_POSE[2],
+            "joint4": START_POSE[3],
+            "joint5": START_POSE[4],
+            "joint6": START_POSE[5],
+            "joint7": START_POSE[6],
         }
 
         self.joint_speeds = {
@@ -36,7 +46,7 @@ class KinovaSim(Node):
         )
         self._joint_vels_sub
 
-        self.pub_rate = 5
+        self.pub_rate = 100
         self.pub_timer = self.create_timer(1 / self.pub_rate, self._timer_callback)
 
         self.get_logger().info("KinovaSim initialization done")

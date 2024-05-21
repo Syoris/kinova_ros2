@@ -51,14 +51,15 @@ public:
     void init_driver(){
         RCLCPP_DEBUG(this->get_logger(), "KinovaArmDriver2 init_driver");
 
-        // comm_ = std::make_shared<kinova::KinovaComm2>(this->shared_from_this(), api_mutex_, is_first_init_, kinova_robot_type_);
-        // arm_ = std::make_shared<kinova::KinovaArm2>(this->shared_from_this(), comm_, kinova_robot_type_, kinova_robot_name_);
+        comm_ = std::make_shared<kinova::KinovaComm2>(this->shared_from_this(), api_mutex_, is_first_init_, kinova_robot_type_);
+        arm_ = std::make_shared<kinova::KinovaArm2>(this->shared_from_this(), comm_, kinova_robot_type_, kinova_robot_name_);
         
-        // TODO: Add comm_
-        // angles_action_server_ = std::make_shared<kinova::KinovaAnglesActionServer>(this->shared_from_this(), comm_);
-        angles_action_server_ = std::make_shared<kinova::KinovaAnglesActionServer>(this->shared_from_this());
+        angles_action_server_ = std::make_shared<kinova::KinovaAnglesActionServer>(this->shared_from_this(), comm_);
+        // angles_action_server_ = std::make_shared<kinova::KinovaAnglesActionServer>(this->shared_from_this());
 
-        pose_action_server_ = std::make_shared<kinova::KinovaCartesianPoseActionServer>(this->shared_from_this());
+        pose_action_server_ = std::make_shared<kinova::KinovaCartesianPoseActionServer>(this->shared_from_this(), comm_);
+        // pose_action_server_ = std::make_shared<kinova::KinovaCartesianPoseActionServer>(this->shared_from_this());
+
 
 
         // kinova::KinovaPoseActionServer pose_server(comm, nh, kinova_robotType, kinova_robotName);

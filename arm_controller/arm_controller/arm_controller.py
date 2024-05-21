@@ -18,6 +18,7 @@ from kinova_msgs.action import ArmJointAngles, ArmPose
 
 from arm_controller.ActionClients import GoToAnglesClient, GoToPoseClient
 from enum import Enum
+import time
 
 
 class ControlMode(Enum):
@@ -30,13 +31,13 @@ class ArmController(Node):
     def __init__(self):
         super().__init__("arm_controller")
 
-        self._is_homed = True  # TODO: Change to False
+        self._is_homed = False
         self._control_mode = self.set_control_mode(ControlMode.REST_MODE)
 
         self.target_joint_vels = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.target_pose_vels = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-        # self._init_clients()
+        self._init_clients()
         self._init_publishers()
         self._init_action_clients()
 
@@ -274,29 +275,30 @@ def main():
 
     arm_controller = ArmController()
 
-    # # Start the arm
-    # arm_controller.start_arm()
-
-    # # Stop the arm
-    # response = arm_controller.stop_arm()
+    # Start the arm
+    arm_controller.start_arm()
 
     # # Home the arm
     # arm_controller.home_arm()
-    # time.sleep(1)
+    time.sleep(3)
 
-    # Pusblish joint vels
-    joint_vels = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    arm_controller.target_joint_vels = joint_vels
-    arm_controller.set_control_mode(ControlMode.JOINT_MODE)
+    # # Pusblish joint vels
+    # joint_vels = [0.0, 0.0, 10.0, 0.0, 0.0, 0.0, 5.0]
+    # arm_controller.target_joint_vels = joint_vels
+    # arm_controller.set_control_mode(ControlMode.JOINT_MODE)
 
-    # # Go to angles
-    # angles = [10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 7.2]
-    # arm_controller.go_to_angles(angles)
+    # Go to angles
+    # home_angles = [103.0, 197, 180, 43, 265, 257, 288]
+    angles = [103.0, 197.0, 180.0, 43.0, 265.0, 257.0, 0.0]
+    arm_controller.go_to_angles(angles)
 
     # # Go to pose
     # position = [1.0, 0.0, 1.5]
     # orientation = [90.0, 0.0, 0.0, 0.0]
     # arm_controller.go_to_pose(position, orientation)
+
+    # # Stop the arm
+    # response = arm_controller.stop_arm()
 
     rclpy.spin(arm_controller)
 

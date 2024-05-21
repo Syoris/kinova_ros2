@@ -63,9 +63,8 @@
       <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
     </plugin>
   </gazebo> -->
-  <link name="link_base">
+  <link name="j2s7s300_link_base">
     <visual>
-      <origin rpy="180 0 0" xyz="0 0 0.1255"/>
       <geometry>
         <mesh filename="package://kinova_description/meshes/base.STL"/>
       </geometry>
@@ -84,15 +83,15 @@
       <inertia ixx="0.000951270861568" ixy="0" ixz="0" iyy="0.000951270861568" iyz="0" izz="0.000374272"/>
     </inertial>
   </link>
-  <joint name="joint_base" type="fixed">
+  <joint name="j2s7s300_joint_base" type="fixed">
     <parent link="root"/>
-    <child link="link_base"/>
+    <child link="j2s7s300_link_base"/>
     <axis xyz="0 0 0"/>
     <limit effort="2000" lower="0" upper="0" velocity="1"/>
     <origin rpy="0 0 0" xyz="0 0 0"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
-  <link name="link_1">
+  <link name="j2s7s300_link_1">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/shoulder.STL"/>
@@ -113,29 +112,29 @@
     </collision>
     <inertial>
       <mass value="0.7477"/>
-      <origin rpy="0 0 0" xyz="0 -0.002 -0.0605"/>
+      <origin xyz="0 -0.002 -0.0605"/>
       <inertia ixx="0.00152031725204" ixy="0" ixz="0" iyy="0.00152031725204" iyz="0" izz="0.00059816"/>
     </inertial>
   </link>
-  <joint name="joint_1" type="continuous">
-    <parent link="link_base"/>
-    <child link="link_1"/>
+  <joint name="j2s7s300_joint_1" type="continuous">
+    <parent link="j2s7s300_link_base"/>
+    <child link="j2s7s300_link_1"/>
     <axis xyz="0 0 1"/>
     <limit effort="2000" lower="-6.28318530718" upper="6.28318530718" velocity="1"/>
     <origin rpy="0 3.14159265359 0" xyz="0 0 0.15675"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
-  <transmission name="joint_1_trans">
+  <transmission name="j2s7s300_joint_1_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_1">
+    <joint name="j2s7s300_joint_1">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="joint_1_actuator">
+    <actuator name="j2s7s300_joint_1_actuator">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>160</mechanicalReduction>
     </actuator>
   </transmission>
-  <link name="link_2">
+  <link name="j2s7s300_link_2">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/arm_half_1.STL"/>
@@ -160,25 +159,25 @@
       <inertia ixx="0.00247073761701" ixy="0" ixz="0" iyy="0.000380115" iyz="0" izz="0.00247073761701"/>
     </inertial>
   </link>
-  <joint name="joint_2" type="revolute">
-    <parent link="link_1"/>
-    <child link="link_2"/>
+  <joint name="j2s7s300_joint_2" type="revolute">
+    <parent link="j2s7s300_link_1"/>
+    <child link="j2s7s300_link_2"/>
     <axis xyz="0 0 1"/>
     <limit effort="2000" lower="0.523598775598" upper="5.75958653158" velocity="1"/>
     <origin rpy="-1.57079632679 0 3.14159265359" xyz="0 0.0016 -0.11875"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
-  <transmission name="joint_2_trans">
+  <transmission name="j2s7s300_joint_2_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_2">
+    <joint name="j2s7s300_joint_2">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="joint_2_actuator">
+    <actuator name="j2s7s300_joint_2_actuator">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>160</mechanicalReduction>
     </actuator>
   </transmission>
-  <link name="link_3">
+  <link name="j2s7s300_link_3">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/arm_half_2.STL"/>
@@ -203,25 +202,25 @@
       <inertia ixx="0.00247073761701" ixy="0" ixz="0" iyy="0.00247073761701" iyz="0" izz="0.000380115"/>
     </inertial>
   </link>
-  <joint name="joint_3" type="continuous">
-    <parent link="link_2"/>
-    <child link="link_3"/>
+  <joint name="j2s7s300_joint_3" type="continuous">
+    <parent link="j2s7s300_link_2"/>
+    <child link="j2s7s300_link_3"/>
     <axis xyz="0 0 1"/>
     <limit effort="2000" lower="-6.28318530718" upper="6.28318530718" velocity="1"/>
     <origin rpy="-1.57079632679 0 0" xyz="0 -0.205 0"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
-  <transmission name="joint_3_trans">
+  <transmission name="j2s7s300_joint_3_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_3">
+    <joint name="j2s7s300_joint_3">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="joint_3_actuator">
+    <actuator name="j2s7s300_joint_3_actuator">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>160</mechanicalReduction>
     </actuator>
   </transmission>
-  <link name="link_4">
+  <link name="j2s7s300_link_4">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/forearm.STL"/>
@@ -246,25 +245,25 @@
       <inertia ixx="0.00142022431908" ixy="0" ixz="0" iyy="0.000304335" iyz="0" izz="0.00142022431908"/>
     </inertial>
   </link>
-  <joint name="joint_4" type="revolute">
-    <parent link="link_3"/>
-    <child link="link_4"/>
+  <joint name="j2s7s300_joint_4" type="revolute">
+    <parent link="j2s7s300_link_3"/>
+    <child link="j2s7s300_link_4"/>
     <axis xyz="0 0 1"/>
     <limit effort="2000" lower="0.523598775598" upper="5.75958653158" velocity="1"/>
     <origin rpy="1.57079632679 0 3.14159265359" xyz="0 0 -0.205"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
-  <transmission name="joint_4_trans">
+  <transmission name="j2s7s300_joint_4_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_4">
+    <joint name="j2s7s300_joint_4">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="joint_4_actuator">
+    <actuator name="j2s7s300_joint_4_actuator">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>160</mechanicalReduction>
     </actuator>
   </transmission>
-  <link name="link_5">
+  <link name="j2s7s300_link_5">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/wrist_spherical_1.STL"/>
@@ -289,25 +288,25 @@
       <inertia ixx="0.0004321316048" ixy="0" ixz="0" iyy="0.0004321316048" iyz="0" izz="9.26e-05"/>
     </inertial>
   </link>
-  <joint name="joint_5" type="continuous">
-    <parent link="link_4"/>
-    <child link="link_5"/>
+  <joint name="j2s7s300_joint_5" type="continuous">
+    <parent link="j2s7s300_link_4"/>
+    <child link="j2s7s300_link_5"/>
     <axis xyz="0 0 1"/>
     <limit effort="2000" lower="-6.28318530718" upper="6.28318530718" velocity="1"/>
     <origin rpy="-1.57079632679 0 3.14159265359" xyz="0 0.2073 -0.0114"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
-  <transmission name="joint_5_trans">
+  <transmission name="j2s7s300_joint_5_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_5">
+    <joint name="j2s7s300_joint_5">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="joint_5_actuator">
+    <actuator name="j2s7s300_joint_5_actuator">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>160</mechanicalReduction>
     </actuator>
   </transmission>
-  <link name="link_6">
+  <link name="j2s7s300_link_6">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/wrist_spherical_2.STL"/>
@@ -332,25 +331,25 @@
       <inertia ixx="0.0004321316048" ixy="0" ixz="0" iyy="9.26e-05" iyz="0" izz="0.0004321316048"/>
     </inertial>
   </link>
-  <joint name="joint_6" type="revolute">
-    <parent link="link_5"/>
-    <child link="link_6"/>
+  <joint name="j2s7s300_joint_6" type="revolute">
+    <parent link="j2s7s300_link_5"/>
+    <child link="j2s7s300_link_6"/>
     <axis xyz="0 0 1"/>
     <limit effort="2000" lower="0.523598775598" upper="5.75958653158" velocity="1"/>
     <origin rpy="1.57079632679 0 3.14159265359" xyz="0 0 -0.10375"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
-  <transmission name="joint_6_trans">
+  <transmission name="j2s7s300_joint_6_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_6">
+    <joint name="j2s7s300_joint_6">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="joint_6_actuator">
+    <actuator name="j2s7s300_joint_6_actuator">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>160</mechanicalReduction>
     </actuator>
   </transmission>
-  <link name="link_7">
+  <link name="j2s7s300_link_7">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/hand_3finger.STL"/>
@@ -375,25 +374,25 @@
       <inertia ixx="0.0003453236187" ixy="0" ixz="0" iyy="0.0003453236187" iyz="0" izz="0.0005816"/>
     </inertial>
   </link>
-  <joint name="joint_7" type="continuous">
-    <parent link="link_6"/>
-    <child link="link_7"/>
+  <joint name="j2s7s300_joint_7" type="continuous">
+    <parent link="j2s7s300_link_6"/>
+    <child link="j2s7s300_link_7"/>
     <axis xyz="0 0 1"/>
     <limit effort="2000" lower="-6.28318530718" upper="6.28318530718" velocity="1"/>
     <origin rpy="-1.57079632679 0 3.14159265359" xyz="0 0.10375 0"/>
     <dynamics damping="0.0" friction="0.0"/>
   </joint>
-  <transmission name="joint_7_trans">
+  <transmission name="j2s7s300_joint_7_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_7">
+    <joint name="j2s7s300_joint_7">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="joint_7_actuator">
+    <actuator name="j2s7s300_joint_7_actuator">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>160</mechanicalReduction>
     </actuator>
   </transmission>
-  <link name="end_effector">
+  <link name="j2s7s300_end_effector">
     <visual>
       <geometry>
         <box size="0 0 0"/>
@@ -405,14 +404,14 @@
       </geometry>
     </collision>
   </link>
-  <joint name="joint_end_effector" type="fixed">
-    <parent link="link_7"/>
-    <child link="end_effector"/>
+  <!-- <joint name="j2s7s300_joint_end_effector" type="fixed">
+    <parent link="j2s7s300_link_7"/>
+    <child link="j2s7s300_end_effector"/>
     <axis xyz="0 0 0"/>
     <limit effort="2000" lower="0" upper="0" velocity="1"/>
     <origin rpy="3.14159265359 0 0" xyz="0 0 -0.1600"/>
   </joint>
-  <link name="link_finger_1">
+  <link name="j2s7s300_link_finger_1">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/finger_proximal.STL"/>
@@ -432,24 +431,24 @@
       <inertia ixx="7.8999684e-07" ixy="0" ixz="0" iyy="7.8999684e-07" iyz="0" izz="8e-08"/>
     </inertial>
   </link>
-  <joint name="joint_finger_1" type="revolute">
-    <parent link="link_7"/>
-    <child link="link_finger_1"/>
+  <joint name="j2s7s300_joint_finger_1" type="revolute">
+    <parent link="j2s7s300_link_7"/>
+    <child link="j2s7s300_link_finger_1"/>
     <axis xyz="0 0 1"/>
     <origin rpy="-1.570796327 .649262481663582 1.35961148639407" xyz="0.00279 0.03126 -0.11467"/>
     <limit effort="2000" lower="0" upper="2" velocity="1"/>
   </joint>
-  <transmission name="joint_finger_1_trans">
+  <transmission name="j2s7s300_joint_finger_1_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_finger_1">
+    <joint name="j2s7s300_joint_finger_1">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="joint_finger_1_actuator">
+    <actuator name="j2s7s300_joint_finger_1_actuator">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
-  </transmission>
-  <link name="link_finger_tip_1">
+  </transmission> -->
+  <!-- <link name="j2s7s300_link_finger_tip_1">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/finger_distal.STL"/>
@@ -469,14 +468,14 @@
       <inertia ixx="7.8999684e-07" ixy="0" ixz="0" iyy="7.8999684e-07" iyz="0" izz="8e-08"/>
     </inertial>
   </link>
-  <joint name="joint_finger_tip_1" type="fixed">
-    <parent link="link_finger_1"/>
-    <child link="link_finger_tip_1"/>
+  <joint name="j2s7s300_joint_finger_tip_1" type="fixed">
+    <parent link="j2s7s300_link_finger_1"/>
+    <child link="j2s7s300_link_finger_tip_1"/>
     <axis xyz="0 0 1"/>
     <origin rpy="0 0 0" xyz="0.044 -0.003 0"/>
     <limit effort="2000" lower="0" upper="2" velocity="1"/>
   </joint>
-  <link name="link_finger_2">
+  <link name="j2s7s300_link_finger_2">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/finger_proximal.STL"/>
@@ -496,24 +495,24 @@
       <inertia ixx="7.8999684e-07" ixy="0" ixz="0" iyy="7.8999684e-07" iyz="0" izz="8e-08"/>
     </inertial>
   </link>
-  <joint name="joint_finger_2" type="revolute">
-    <parent link="link_7"/>
-    <child link="link_finger_2"/>
+  <joint name="j2s7s300_joint_finger_2" type="revolute">
+    <parent link="j2s7s300_link_7"/>
+    <child link="j2s7s300_link_finger_2"/>
     <axis xyz="0 0 1"/>
     <origin rpy="-1.570796327 .649262481663582 -1.38614049188413" xyz="0.02226 -0.02707 -0.11482"/>
     <limit effort="2000" lower="0" upper="2" velocity="1"/>
   </joint>
-  <transmission name="joint_finger_2_trans">
+  <transmission name="j2s7s300_joint_finger_2_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_finger_2">
+    <joint name="j2s7s300_joint_finger_2">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="joint_finger_2_actuator">
+    <actuator name="j2s7s300_joint_finger_2_actuator">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
-  <link name="link_finger_tip_2">
+  <link name="j2s7s300_link_finger_tip_2">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/finger_distal.STL"/>
@@ -533,14 +532,14 @@
       <inertia ixx="7.8999684e-07" ixy="0" ixz="0" iyy="7.8999684e-07" iyz="0" izz="8e-08"/>
     </inertial>
   </link>
-  <joint name="joint_finger_tip_2" type="fixed">
-    <parent link="link_finger_2"/>
-    <child link="link_finger_tip_2"/>
+  <joint name="j2s7s300_joint_finger_tip_2" type="fixed">
+    <parent link="j2s7s300_link_finger_2"/>
+    <child link="j2s7s300_link_finger_tip_2"/>
     <axis xyz="0 0 1"/>
     <origin rpy="0 0 0" xyz="0.044 -0.003 0"/>
     <limit effort="2000" lower="0" upper="2" velocity="1"/>
   </joint>
-  <link name="link_finger_3">
+  <link name="j2s7s300_link_finger_3">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/finger_proximal.STL"/>
@@ -560,24 +559,24 @@
       <inertia ixx="7.8999684e-07" ixy="0" ixz="0" iyy="7.8999684e-07" iyz="0" izz="8e-08"/>
     </inertial>
   </link>
-  <joint name="joint_finger_3" type="revolute">
-    <parent link="link_7"/>
-    <child link="link_finger_3"/>
+  <joint name="j2s7s300_joint_finger_3" type="revolute">
+    <parent link="j2s7s300_link_7"/>
+    <child link="j2s7s300_link_finger_3"/>
     <axis xyz="0 0 1"/>
     <origin rpy="-1.570796327 .649262481663582 -1.75545216211587" xyz="-0.02226 -0.02707 -0.11482"/>
     <limit effort="2000" lower="0" upper="2" velocity="1"/>
   </joint>
-  <transmission name="joint_finger_3_trans">
+  <transmission name="j2s7s300_joint_finger_3_trans">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_finger_3">
+    <joint name="j2s7s300_joint_finger_3">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
-    <actuator name="joint_finger_3_actuator">
+    <actuator name="j2s7s300_joint_finger_3_actuator">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
-  <link name="link_finger_tip_3">
+  <link name="j2s7s300_link_finger_tip_3">
     <visual>
       <geometry>
         <mesh filename="package://kinova_description/meshes/finger_distal.STL"/>
@@ -597,11 +596,11 @@
       <inertia ixx="7.8999684e-07" ixy="0" ixz="0" iyy="7.8999684e-07" iyz="0" izz="8e-08"/>
     </inertial>
   </link>
-  <joint name="joint_finger_tip_3" type="fixed">
-    <parent link="link_finger_3"/>
-    <child link="link_finger_tip_3"/>
+  <joint name="j2s7s300_joint_finger_tip_3" type="fixed">
+    <parent link="j2s7s300_link_finger_3"/>
+    <child link="j2s7s300_link_finger_tip_3"/>
     <axis xyz="0 0 1"/>
     <origin rpy="0 0 0" xyz="0.044 -0.003 0"/>
     <limit effort="2000" lower="0" upper="2" velocity="1"/>
-  </joint>
+  </joint> -->
 </robot>

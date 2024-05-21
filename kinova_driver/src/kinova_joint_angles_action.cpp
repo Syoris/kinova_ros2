@@ -4,8 +4,8 @@
 namespace kinova
 {
 
-// KinovaAnglesActionServer::KinovaAnglesActionServer(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2):node_(node), comm_(kinova_comm2)
-KinovaAnglesActionServer::KinovaAnglesActionServer(rclcpp::Node::SharedPtr node):node_(node){
+KinovaAnglesActionServer::KinovaAnglesActionServer(rclcpp::Node::SharedPtr node, std::shared_ptr<KinovaComm2> kinova_comm2):node_(node), comm_(kinova_comm2){
+// KinovaAnglesActionServer::KinovaAnglesActionServer(rclcpp::Node::SharedPtr node):node_(node){
     
     using namespace std::placeholders;
 
