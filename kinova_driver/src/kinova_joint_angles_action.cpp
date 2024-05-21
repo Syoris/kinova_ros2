@@ -101,8 +101,9 @@ void KinovaAnglesActionServer::execute(const std::shared_ptr<GoalHandleJointAngl
                 result->angles = curr_angles_msg;
                 
                 goal_handle->canceled(result);
-                // comm_->stopAPI();
+                
                 comm_->eraseAllTrajectories();
+                comm_->stopAPI();
 
                 RCLCPP_INFO(node_->get_logger(), "Goal canceled");
                 return;
@@ -143,6 +144,8 @@ void KinovaAnglesActionServer::execute(const std::shared_ptr<GoalHandleJointAngl
     }
     catch(const std::exception& e)
     {
+        comm_->eraseAllTrajectories();
+
         result->angles = curr_angles_msg;
         RCLCPP_ERROR(node_->get_logger(), "Error executing goal: %s", e.what());
         RCLCPP_ERROR(node_->get_logger(), "Aborting goal");

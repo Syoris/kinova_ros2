@@ -21,6 +21,7 @@ setup(
         "console_scripts": [
             "arm_controller = arm_controller.arm_controller:main",
             "demo = arm_controller.demo:main",
+            "quat_trans = arm_controller.quat_trans:main",
         ],
     },
 )

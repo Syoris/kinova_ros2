@@ -31,12 +31,15 @@ rclcpp_action::GoalResponse KinovaCartesianPoseActionServer::handle_goal(const r
 
     // Log goal request with target joint angles
     RCLCPP_INFO(node_->get_logger(), "Received goal request with target pose: "
+        "\nPose:"
         "\n\t-x: %f"
         "\n\t-y: %f"
         "\n\t-z: %f"
-        "\n\t-r: %f"
-        "\n\t-p: %f"
-        "\n\t-y: %f", goal_pose.position.x, goal_pose.position.y, goal_pose.position.z, goal_pose.orientation.x, goal_pose.orientation.y, goal_pose.orientation.z);
+        "\nOrientation:"
+        "\n\t-x: %f"
+        "\n\t-y: %f"
+        "\n\t-z: %f"
+        "\n\t-w: %f", goal_pose.position.x, goal_pose.position.y, goal_pose.position.z, goal_pose.orientation.x, goal_pose.orientation.y, goal_pose.orientation.z, goal_pose.orientation.w);
         
     (void)uuid; // unused
 
@@ -84,8 +87,18 @@ void KinovaCartesianPoseActionServer::execute(const std::shared_ptr<GoalHandleCa
     try{
         // Process goal frame
         // listener.transformPose(local_pose.header.frame_id, goal->pose, local_pose); // TODO: Transform TF
-        // comm_->getCartesianPosition(current_pose);
+        comm_->getCartesianPosition(current_pose);
         local_pose.pose = goal->pose.pose;
+        RCLCPP_INFO(node_->get_logger(), "Local pose: "
+        "\nPose:"
+        "\n\t-x: %f"
+        "\n\t-y: %f"
+        "\n\t-z: %f"
+        "\nOrientation:"
+        "\n\t-x: %f"
+        "\n\t-y: %f"
+        "\n\t-z: %f"
+        "\n\t-w: %f", local_pose.pose.position.x, local_pose.pose.position.y, local_pose.pose.position.z, local_pose.pose.orientation.x, local_pose.pose.orientation.y, local_pose.pose.orientation.z, local_pose.pose.orientation.w);
 
         KinovaPose target(local_pose.pose);
         RCLCPP_INFO(node_->get_logger(), "Target pose (arm frame): "
@@ -99,12 +112,12 @@ void KinovaCartesianPoseActionServer::execute(const std::shared_ptr<GoalHandleCa
 
         while (rclcpp::ok())
         {
-            // comm_->setCartesianPosition(target);
+            comm_->setCartesianPosition(target);
 
             // rclcpp::spin_some(node_);
 
             // Get current pose
-            // comm_->getCartesianPosition(current_pose);
+            comm_->getCartesianPosition(current_pose);
             // current_time = node_->now();
 
             local_pose.pose = current_pose.constructPoseMsg();
@@ -112,8 +125,6 @@ void KinovaCartesianPoseActionServer::execute(const std::shared_ptr<GoalHandleCa
             // TODO: Transform TF
             // listener.transformPose(feedback.pose.header.frame_id, local_pose, feedback.pose);
             feedback->pose = local_pose;
-
-
 
             // Check conditions
             if (target.isCloseToOther(current_pose, position_tolerance_, angle_tolerance_))
@@ -126,9 +137,13 @@ void KinovaCartesianPoseActionServer::execute(const std::shared_ptr<GoalHandleCa
 
             // Cancel request
             else if (goal_handle->is_canceling()) {
+                comm_->eraseAllTrajectories();
+                comm_->stopAPI();
+
                 result->pose = feedback->pose;
                 
                 goal_handle->canceled(result);
+
                 RCLCPP_INFO(node_->get_logger(), "Goal canceled");
                 return;
             }
@@ -166,6 +181,7 @@ void KinovaCartesianPoseActionServer::execute(const std::shared_ptr<GoalHandleCa
     }
     catch(const std::exception& e)
     {
+        comm_->eraseAllTrajectories();
         result->pose = feedback->pose;
         RCLCPP_ERROR(node_->get_logger(), "Error executing goal: %s", e.what());
         RCLCPP_ERROR(node_->get_logger(), "Aborting goal");

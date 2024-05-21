@@ -1,3 +1,6 @@
+import math
+import numpy as np
+
 import rclpy
 import rclpy.action
 from rclpy.node import Node
@@ -17,9 +20,85 @@ from kinova_msgs.srv import (
 )
 from kinova_msgs.action import ArmJointAngles, ArmPose
 
+from geometry_msgs.msg import WrenchStamped
+
 from arm_controller.ActionClients import GoToAnglesClient, GoToPoseClient
 from enum import Enum
 import time
+
+
+def quaternion_from_euler(rpy, degrees=False):
+    """
+    Converts euler roll, pitch, yaw to quaternion (w in last place)
+    quat = [x, y, z, w]
+    Bellow should be replaced when porting for ROS 2 Python tf_conversions is done.
+    """
+    x = rpy[0]
+    y = rpy[1]
+    z = rpy[2]
+
+    if degrees:
+        x = math.radians(x)
+        y = math.radians(y)
+        z = math.radians(z)
+
+    cx = math.cos(x * 0.5)
+    sx = math.sin(x * 0.5)
+    cy = math.cos(y * 0.5)
+    sy = math.sin(y * 0.5)
+    cz = math.cos(z * 0.5)
+    sz = math.sin(z * 0.5)
+
+    q = [0] * 4
+    q[0] = sx * cy * cz + cx * sy * sz
+    q[1] = -sx * cy * sz + cx * sy * cz
+    q[2] = sx * sy * cz + cx * cy * sz
+    q[3] = -sx * sy * sz + cx * cy * cz
+
+    # # Doesnt seem to be the correct convention
+    # roll = rpy[0]
+    # pitch = rpy[1]
+    # yaw = rpy[2]
+
+    # cy = math.cos(yaw * 0.5)
+    # sy = math.sin(yaw * 0.5)
+    # cp = math.cos(pitch * 0.5)
+    # sp = math.sin(pitch * 0.5)
+    # cr = math.cos(roll * 0.5)
+    # sr = math.sin(roll * 0.5)
+
+    # q = [0] * 4
+    # q[0] = cy * cp * cr + sy * sp * sr
+    # q[1] = cy * cp * sr - sy * sp * cr
+    # q[2] = sy * cp * sr + cy * sp * cr
+    # q[3] = sy * cp * cr - cy * sp * sr
+
+    return np.array(q)
+
+
+def euler_from_quaternion(quaternion):
+    """
+    Converts quaternion (w in last place) to euler roll, pitch, yaw
+    quaternion = [x, y, z, w]
+    Bellow should be replaced when porting for ROS 2 Python tf_conversions is done.
+    """
+    x = quaternion.x
+    y = quaternion.y
+    z = quaternion.z
+    w = quaternion.w
+
+    sinr_cosp = 2 * (w * x + y * z)
+    cosr_cosp = 1 - 2 * (x * x + y * y)
+    roll = np.arctan2(sinr_cosp, cosr_cosp)
+
+    sinp = 2 * (w * y - z * x)
+    pitch = np.arcsin(sinp)
+
+    siny_cosp = 2 * (w * z + x * y)
+    cosy_cosp = 1 - 2 * (y * y + z * z)
+    yaw = np.arctan2(siny_cosp, cosy_cosp)
+
+    return roll, pitch, yaw
 
 
 class ControlMode(Enum):
@@ -54,6 +133,7 @@ class ArmController(Node):
         self.get_logger().info("Cancelling all actions...")
 
         self._go_to_angles_client.cancel_goal()
+        self._go_to_pose_client.cancel_goal()
 
     # ---------------- SERVICE CLIENTS ----------------
     # MARK: SERVICES
@@ -285,14 +365,16 @@ class ArmController(Node):
     def go_to_pose(self, pose: list, orientation: list):
         goal_msg = ArmPose.Goal()
 
-        goal_msg.pose.pose.position.x = pose[0]
-        goal_msg.pose.pose.position.y = pose[1]
-        goal_msg.pose.pose.position.z = pose[2]
+        self.get_logger().info(f"Going to pose: {pose}\n{orientation}")
 
-        goal_msg.pose.pose.orientation.x = orientation[0]
-        goal_msg.pose.pose.orientation.y = orientation[1]
-        goal_msg.pose.pose.orientation.z = orientation[2]
-        goal_msg.pose.pose.orientation.w = orientation[3]
+        goal_msg.pose.pose.position.x = float(pose[0])
+        goal_msg.pose.pose.position.y = float(pose[1])
+        goal_msg.pose.pose.position.z = float(pose[2])
+
+        goal_msg.pose.pose.orientation.x = float(orientation[0])
+        goal_msg.pose.pose.orientation.y = float(orientation[1])
+        goal_msg.pose.pose.orientation.z = float(orientation[2])
+        goal_msg.pose.pose.orientation.w = float(orientation[3])
 
         self._go_to_pose_client.send_goal(goal_msg)
 
@@ -325,17 +407,28 @@ def main():
         # arm_controller.go_to_angles(angles)
         # time.sleep(2)
 
-        # # Go to pose
-        # home_pose = [0.20, -0.26, 0.5]
-        # home_orientation = [
-        #     -0.14027640223503113,
-        #     0.7090284824371338,
-        #     -0.42349401116371155,
-        #     0.5461264252662659,
-        # ]
-        # position = [1.0, 0.0, 1.5]
-        # orientation = [90.0, 0.0, 0.0, 0.0]
-        # arm_controller.go_to_pose(position, orientation)
+        # Go to pose
+        home_position = [0.20, -0.26, 0.5]
+        home_orientation = np.array(
+            [
+                -0.14027640223503113,
+                0.7090284824371338,
+                -0.42349401116371155,
+                0.5461264252662659,
+            ]
+        )
+        position_d = [0, 0, 0]
+        orientation_d = [0, 0, 0]
+
+        # position_goal = [x + y for x, y in zip(home_position, position_d)]
+        # orientation_goal = home_orientation + quaternion_from_euler(orientation_d)
+
+        position_goal = [0.4, -0.2, 0.3]
+
+        orientation_goal = quaternion_from_euler([0.0, 0.0, 0.0], degrees=True)
+        arm_controller.get_logger().info(f"Orientation goal: {orientation_goal}")
+
+        arm_controller.go_to_pose(position_goal, orientation_goal)
 
         # # Run COM parameters estimation
         # arm_controller.run_com_parameters_estimation()
